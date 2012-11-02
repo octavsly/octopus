@@ -39,7 +39,7 @@ namespace eval ::octopusRC {
 			\
 			define_dft_test_clocks \
 			define_dft_test_mode \
-			define_dft_test_signals
+			define_dft_test_signals \
 			\
 			generate_list_of_clock_inverters_for_dft_shell \
 
