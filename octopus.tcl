@@ -28,6 +28,7 @@ namespace eval ::octopus:: {
 			set_octopus_color \
 			display_message \
 			extract_check_options_data \
+			debug_variables \
 			summary_of_messages \
 			abort_on \
 			check_file \
@@ -702,6 +703,41 @@ proc ::octopus::parse_file_set args {
 	::octopus::append_cascading_variables
 
 	return $file_set_total
+}
+# END
+################################################################################
+
+
+################################################################################
+# BEGIN returns a list with the lists containing RTL/type/library/options
+# Returns a list with the files that pass the check
+
+proc ::octopus::debug_variables args {
+
+	set var_array(10,no-globals)  	[list "--no-globals" "false" "boolean" "" "" "" "Display the global variables."]
+	set var_array(20,no-locals)    	[list "--no-locals" "false" "boolean" "" "" "" "Display the local variables."]
+	::octopus::extract_check_options_data
+
+	::octopus::abort_on error --return
+
+		if { "${no-locals}" == "false" } {
+			display_message info "Local variable seen at [calling_proc]"
+			uplevel {
+				foreach iii [info locals] {
+					display_message none "%b$iii%n=[set $iii]"
+				}
+				unset iii
+			}
+		}
+		if { "${no-globals}" == "false" } {
+			display_message info "Global variable"
+			uplevel {
+				foreach iii [info globals] {
+					catch {display_message none "%b$iii%n=[set $iii]"}
+				}
+				unset iii
+			}
+		}
 }
 # END
 ################################################################################
