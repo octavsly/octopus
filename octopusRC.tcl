@@ -69,13 +69,13 @@ proc ::octopusRC::set_design_maturity_level args {
 	extract_check_options_data ; #description of var_array variable is given in this procedures
 
 	set  help_head {
-		display_message none "Set the RC parameters based on the design maturity level"
+		::octopus::display_message none "Set the RC parameters based on the design maturity level"
 	}
 
 	::octopus::abort_on error --return --display-help
 
-	display_message info 	"Setting design maturity level to ${maturity-level}"
-	display_message warning "maturity level setting is in ALPHA stage"
+	::octopus::display_message info 	"Setting design maturity level to ${maturity-level}"
+	::octopus::display_message warning "maturity level setting is in ALPHA stage"
 
 	# Nice feature of RC, allowing user defined attributes
 	define_attribute \
@@ -90,7 +90,7 @@ proc ::octopusRC::set_design_maturity_level args {
 	foreach caf ${rc-attributes-file} {
 		set fileID [open ${caf} {RDONLY} ]
 		foreach line [split [read $fileID] "\n"] {
-			display_message debug "<20> Processing line: $line"
+			::octopus::display_message debug "<20> Processing line: $line"
 			# Process line
 			if { [ regexp {^[\s]*#} $line match] } {
 				# comments so just continue
@@ -98,12 +98,12 @@ proc ::octopusRC::set_design_maturity_level args {
 			}
 			if { [ regexp {[\s]*([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+(.*)} $line match \
 				rc_attribute value(pyrite) value(bronze) value(silver) value(gold) value(diamond) comment ] } {
-				display_message debug "<2> set_attribute $rc_attribute $value(${maturity-level})"
+				::octopus::display_message debug "<2> set_attribute $rc_attribute $value(${maturity-level})"
 				if { "$value(${maturity-level})" != "-" } {
 					set_attribute $rc_attribute $value(${maturity-level})
 				}
 				if { ${rc_attribute} == "hdl_track_filename_row_col" } {
-					display_message warning "hdl_track_filename_row_col attribute is known to create problems like slow-down and crashes"
+					::octopus::display_message warning "hdl_track_filename_row_col attribute is known to create problems like slow-down and crashes"
 				}
 			}
 		}
@@ -134,7 +134,7 @@ proc ::octopusRC::modules_under args {
 	set var_array(max_level) 	[list "--max_level" "infinity" "string" "1" "1" "" ]
 	set var_array(module_name) 	[list "--module_name" "<none>" "string" "1" "1" "" ]
 	extract_check_options_data ; #description of var_array variable is given in this procedure
-	display_message error "Procedure not implemented"
+	::octopus::display_message error "Procedure not implemented"
 	::octopus::append_cascading_variables
 
 }
@@ -155,14 +155,14 @@ proc ::octopusRC::rec_grouping {parrent_instance list_instances_under_parent} {
 	upvar execution_trace execution_trace
 
 	incr level
-	display_message debug "<1> Entering: $parrent_instance (Recursion level:$level)"
+	::octopus::display_message debug "<1> Entering: $parrent_instance (Recursion level:$level)"
 
 	set list_of_instances_to_group ""
-	display_message debug "<2> Going through: $list_instances_under_parent"
+	::octopus::display_message debug "<2> Going through: $list_instances_under_parent"
 	foreach crt_inst $list_instances_under_parent {
 		if { [string match "* ${crt_inst} *" " ${exclude-parents-of-instances} "] } {
 		# We have found the exact match to an always ON instance
-		display_message debug "<1>     SKIPPING exact ${crt_inst}"
+		::octopus::display_message debug "<1>     SKIPPING exact ${crt_inst}"
 		} else {
 			if { [string match "* ${crt_inst}*" " ${exclude-parents-of-instances} "] } {
 				# An always ON instance is under this instance
@@ -177,7 +177,7 @@ proc ::octopusRC::rec_grouping {parrent_instance list_instances_under_parent} {
 						# all instances will see the modifications.
 						# Thus, if we detect an already parsed modules do not process it again.
 						rec_grouping $crt_inst [find ${crt_inst} -instance -maxdepth  2 *]
-						display_message debug "<1>     SKIPPING       ${crt_inst}"
+						::octopus::display_message debug "<1>     SKIPPING       ${crt_inst}"
 					}
 				}
 			} else {
@@ -191,11 +191,11 @@ proc ::octopusRC::rec_grouping {parrent_instance list_instances_under_parent} {
 	# thus preventing grouping everything together
 	if {[llength $list_of_instances_to_group] !=0} {
 		if { "${parrent_instance}" != "" } {
-			display_message debug "<1>     Grouping inside $parrent_instance"
+			::octopus::display_message debug "<1>     Grouping inside $parrent_instance"
 			foreach aux $list_of_instances_to_group {
-				display_message debug "<1>     |-> $aux"
+				::octopus::display_message debug "<1>     |-> $aux"
 			}
-			display_message debug "<1>     --- "
+			::octopus::display_message debug "<1>     --- "
 
 			cd $parrent_instance
 			edit_netlist group -group_name new_Inst_group_sw_domain_ $list_of_instances_to_group
@@ -208,7 +208,7 @@ proc ::octopusRC::rec_grouping {parrent_instance list_instances_under_parent} {
 	}
 
 	set level [expr $level - 1]
-	display_message debug "<1> Exiting $parrent_instance (Recursion level:$level)"
+	::octopus::display_message debug "<1> Exiting $parrent_instance (Recursion level:$level)"
 }
 # END rec_grouping
 ################################################################################
@@ -228,7 +228,7 @@ proc ::octopusRC::advanced_recursive_grouping args {
 
 	extract_check_options_data ; #description of var_array variable is given in this procedures
 
-	display_message fixme "Check that 'group-children-of-instances' and 'exclude-parents-of-instances' instances exist in the design"
+	::octopus::display_message fixme "Check that 'group-children-of-instances' and 'exclude-parents-of-instances' instances exist in the design"
 
 	set list_of_parsed_modules ""
 	set level 1
@@ -236,7 +236,7 @@ proc ::octopusRC::advanced_recursive_grouping args {
 		rec_grouping $crt_inst [find ${crt_inst} -instance -maxdepth  2 *]
 	}
 
-	display_message debug "<2> Exit"
+	::octopus::display_message debug "<2> Exit"
 	::octopus::append_cascading_variables
 }
 # END advanced_recursive_grouping
@@ -258,10 +258,10 @@ proc ::octopusRC::fan_hierarchical args {
 	set var_array(40,include-nets)			[list "--include-nets" "false" "boolean" "0" "0" "Include nets during the traces. If this option is omitted, only ports are returned."]
 
 	extract_check_options_data ; #description of var_array variable is given in this procedures
-	display_message debug  "<1> Entering: $parrent_instance"
+	::octopus::display_message debug  "<1> Entering: $parrent_instance"
 
 	if { $max_depth > 1 } {
-		display_message error "--max_depth > 1 is not yet implemented"
+		::octopus::display_message error "--max_depth > 1 is not yet implemented"
 	} else {
 		set max_depth 1
 	}
@@ -321,7 +321,7 @@ proc trace_pins_hierarchical {pin} {
 		set direction_check_n "in"
 		set driver_loads "loads"
 	} else {
-		display_message error "fan can be either in or out. It is currently $fan"
+		::octopus::display_message error "fan can be either in or out. It is currently $fan"
 		return
 	}
 	# Variable to acuumulate the ports that will be returned.
@@ -342,7 +342,7 @@ proc trace_pins_hierarchical {pin} {
 		set pin_converted_crt_next_pin [find [dirname $crt_next_pin -times 2] -maxdepth 2 -pin [file tail $crt_next_pin]]
 		if { "$pin_direction" == "inout" } {
 			#not yet dealing with inouts
-			display_message error "Stopping tracing at inout pin $crt_next_pin. result might be inaccurate"
+			::octopus::display_message error "Stopping tracing at inout pin $crt_next_pin. result might be inaccurate"
 			set accumulate_ports [concat $accumulate_ports [if_vname $crt_next_pin]]
 		} elseif { "$pin_direction" == "$direction_check" } {
 			# Might be a subport so we need to use the pin
@@ -355,9 +355,9 @@ proc trace_pins_hierarchical {pin} {
 			# This is a library port. Add it to the list and continue
 			set accumulate_ports [concat $accumulate_ports $crt_next_pin]
 		} else {
-			display_message error "I am not supossed to be here."
-			display_message none "pin_direction=$pin_direction"
-			display_message none "hierarchical_attribute=$hierarchical_attribute"
+			::octopus::display_message error "I am not supossed to be here."
+			::octopus::display_message none "pin_direction=$pin_direction"
+			::octopus::display_message none "hierarchical_attribute=$hierarchical_attribute"
 		}
 	}
 	return [concat [include_nets $net] $accumulate_ports]
@@ -422,12 +422,12 @@ proc ::octopusRC::set_attribute_recursive args {
 	::octopus::abort_on error --return --display-help
 
 	set help_tail {
-		display_message none "More information:"
-		display_message none "    --objects:   While pins, or other projects, can be specified, it makes no sense, since recursion is not yet implemented"
+		::octopus::display_message none "More information:"
+		::octopus::display_message none "    --objects:   While pins, or other projects, can be specified, it makes no sense, since recursion is not yet implemented"
 	}
 
 	if { "$direction" != "up" } {
-		display_message error "Direction $direction not implemented"
+		::octopus::display_message error "Direction $direction not implemented"
 	}
 
 	# Flatten several; find lists. Is there a better way?
@@ -445,12 +445,12 @@ proc ::octopusRC::set_attribute_recursive args {
 				set_attribute [lindex $attribute 0 ] [lindex $attribute 1 ] $vco
 				set vco [file dirname $vco]
 				incr safe
-				display_message debug "<10> Remaining to process: $vco"
+				::octopus::display_message debug "<10> Remaining to process: $vco"
 			}
 		}
 	}
 	if { $safe >= 9999 } {
-		display_message error "Maximum number of instances achieved, being $safe. Not all instances received the attribute."
+		::octopus::display_message error "Maximum number of instances achieved, being $safe. Not all instances received the attribute."
 	}
 
 }
@@ -477,18 +477,18 @@ proc ::octopusRC::define_dft_test_clocks args {
 
 	::octopus::abort_on error --return --display-help
 
-	display_message info "BEGIN Defining test clocks from SDC"
+	::octopus::display_message info "BEGIN Defining test clocks from SDC"
 
 	set all_clocks ""
 	# Check that all clocks specified by add-clocks is a valid object
 	foreach crt_add_clock ${add-clocks} {
 		if { "${add-clocks}" != "false" && [catch {lappend all_clocks [ls $crt_add_clock]} ] } {
-			display_message error "$crt_add_clock does not exist in the design"
+			::octopus::display_message error "$crt_add_clock does not exist in the design"
 		}
 	}
 	foreach crt_skip_clock ${skip-clocks} {
 		if { "${skip-clocks}" != "false" && [catch {lappend all_clocks [ls $crt_skip_clock]} ] } {
-			display_message error "$crt_skip_clock does not exist in the design"
+			::octopus::display_message error "$crt_skip_clock does not exist in the design"
 		}
 	}
 
@@ -501,18 +501,18 @@ proc ::octopusRC::define_dft_test_clocks args {
 		foreach crt_clock "$all_clocks" {
 			set clock_name [file tail $crt_clock]
 			if { [catch {set clock_driver [get_attribute non_inverted_sources $crt_clock]} ] } {
-				display_message error "Is $crt_clock a clock signal?"
+				::octopus::display_message error "Is $crt_clock a clock signal?"
 			}
         		set aux_clock_driver [string map [list \[ {\[} \] {\]} \\ {\\}] $clock_driver]
 		        if { [ lsearch $all_clock_drivers $aux_clock_driver] >= 0 } {
-				display_message debug "<2> There is already a clock defined on $aux_clock_driver"
+				::octopus::display_message debug "<2> There is already a clock defined on $aux_clock_driver"
                 		continue
 		        }
 			if { [string match "* $clock_driver *" " ${skip-clocks} "] > 0 } {
-				display_message info "User requested to skip defining a test clock on $clock_driver"
+				::octopus::display_message info "User requested to skip defining a test clock on $clock_driver"
 			}
 	        	lappend all_clock_drivers $clock_driver
-			display_message info "Defining a test clock on $clock_driver"
+			::octopus::display_message info "Defining a test clock on $clock_driver"
 		        eval uplevel #0 {define_dft \
         	        	test_clock \
 	                	-name $clock_name \
@@ -521,7 +521,7 @@ proc ::octopusRC::define_dft_test_clocks args {
 				$clock_driver}
 		}
 	}
-	display_message info "END Defining test clocks from SDC"
+	::octopus::display_message info "END Defining test clocks from SDC"
 	::octopus::append_cascading_variables
 }
 # END
@@ -543,7 +543,7 @@ proc ::octopusRC::read_dft_abstract_model args {
 	::octopus::abort_on error --return --display-help
 
 	if { "$module" != "" && [llength $ctl] > 1 } {
-			display_message error "If you specify --module option, then only one CTL file can be specified"
+			::octopus::display_message error "If you specify --module option, then only one CTL file can be specified"
 	}
 
 	abort_on error --return --display-help
@@ -566,14 +566,14 @@ proc ::octopusRC::read_dft_abstract_model args {
 				# Process line
 				if { [ regexp ".*Environment[\s]+[\"\']*([^\"\']*)[\"\']*[\s]*" $line match crt_module ] } {
 					# Found the crt_module, just exit
-					display_message debug "<2> Extracted module '$crt_module' from CTL file '$crt_ctl_file'"
+					::octopus::display_message debug "<2> Extracted module '$crt_module' from CTL file '$crt_ctl_file'"
 					break
 				}
 			}
 			close $fileID
 		}
 
-		display_message debug "<1> BEGIN Defining DfT abstract segments for all instances of module '${crt_module}'"
+		::octopus::display_message debug "<1> BEGIN Defining DfT abstract segments for all instances of module '${crt_module}'"
 		if { [llength [lindex [find / -libcell ${crt_module}] 0]] !=0 } {
 			# This is a library cell with scan-chains inside. e.g. AMOS does that to increase coverage
 			#
@@ -591,21 +591,21 @@ proc ::octopusRC::read_dft_abstract_model args {
 					-ctl $crt_ctl_file }
 			}
 			if { [ llength $instances ] == 0 } {
-					display_message error "There is no instantiation of module ${crt_module}. Was this optimized away?"
+					::octopus::display_message error "There is no instantiation of module ${crt_module}. Was this optimized away?"
 			}
 			if { [llength $unresolved_instantiations] != 0  } {
-				display_message warning "I am defining a chain on an unresolved instance: $unresolved_instantiations."
-				display_message warning "		 Check why it's unresolved."
-				display_message warning "		 Furthermore, this might create problems with the connect_scan_chains command since the scan-in/scan-out ports are preserved true and cannot be connected to the scan chain"
+				::octopus::display_message warning "I am defining a chain on an unresolved instance: $unresolved_instantiations."
+				::octopus::display_message warning "		 Check why it's unresolved."
+				::octopus::display_message warning "		 Furthermore, this might create problems with the connect_scan_chains command since the scan-in/scan-out ports are preserved true and cannot be connected to the scan chain"
 			}
 		} else {
 			# This is a cell
 			set full_path_crt_module [find -subdesign ${crt_module}]
 			if { [llength $full_path_crt_module] == 0 } {
-				display_message error "There is no instantiation of module ${crt_module}. Was it optimized away?"
+				::octopus::display_message error "There is no instantiation of module ${crt_module}. Was it optimized away?"
 			} else {
 				if { "${boundary-opto}" == "false" } {
-					display_message debug "<2> Switching off boundary optimization for module $full_path_crt_module"
+					::octopus::display_message debug "<2> Switching off boundary optimization for module $full_path_crt_module"
 					set_attribute boundary_opto false  $full_path_crt_module
 				}
 				set iii 0
@@ -619,7 +619,7 @@ proc ::octopusRC::read_dft_abstract_model args {
 				}
 			}
 		}
-		display_message debug "<1> END Defining DfT abstract segments for all instances of module '${crt_module}'"
+		::octopus::display_message debug "<1> END Defining DfT abstract segments for all instances of module '${crt_module}'"
 	}
 	::octopus::append_cascading_variables
 }
@@ -646,25 +646,25 @@ proc ::octopusRC::define_dft_test_signals args {
 	extract_check_options_data ; #description of var_array variable is given in this procedures
 
 	set  help_head {
-		display_message none "Extracts DfT constraints from SDC set_case_analysis statements"
+		::octopus::display_message none "Extracts DfT constraints from SDC set_case_analysis statements"
 	}
 
 	::octopus::abort_on error --return --display-help
 
-	display_message info "BEGIN Defining test signals from timing mode(s): ${timing-modes}"
+	::octopus::display_message info "BEGIN Defining test signals from timing mode(s): ${timing-modes}"
 
 	# Start processing all signals from SDC
 	set all_signals ""
 	# Check that all signals specified by add-signals are valid objects
 	foreach crt_add_signal ${add-signals} {
 		if { "${add-signals}" != "false" && [catch {lappend all_signals [ls $crt_add_signal]} ] } {
-			display_message error "$crt_add_signal does not exist in the design"
+			::octopus::display_message error "$crt_add_signal does not exist in the design"
 		}
 	}
 	# Check that all signals specified by skip-signals are valid objects
 	foreach crt_skip_signal ${skip-signals} {
 		if { "${skip-signals}" != "false" && [catch {lappend all_signals [ls $crt_skip_signal]} ] } {
-			display_message error "$crt_skip_signal does not exist in the design"
+			::octopus::display_message error "$crt_skip_signal does not exist in the design"
 		}
 	}
 
@@ -676,7 +676,7 @@ proc ::octopusRC::define_dft_test_signals args {
 		set ssc ""
 	}
 
-	display_message debug "<2> collecting set_case_analysis statements from RC database"
+	::octopus::display_message debug "<2> collecting set_case_analysis statements from RC database"
 	set all_signals "$all_signals [filter timing_case_logic_value_by_mode {[^\s]+[\s]+[\d]} -regexp [concat [find / -pin *] [find / -port *]]]"
 
 	set all_processed_signals ""
@@ -693,11 +693,11 @@ proc ::octopusRC::define_dft_test_signals args {
 				if { "[file tail $crt_mode]" == "$crt_timing_mode" } {
 					set aux_crt_sgn [string map [list \[ {\[} \] {\]} \\ {\\}] $crt_sgn]
 					if { [ lsearch $all_processed_signals $aux_crt_sgn] >= 0 } {
-						display_message debug "<2> There is already a test_mode defined on $aux_crt_sgn"
+						::octopus::display_message debug "<2> There is already a test_mode defined on $aux_crt_sgn"
 						continue
 					}
 					if { [string match "* $crt_sgn *" " ${skip-signals} "] > 0 } {
-						display_message info "User requested to skip defining a test value on $crt_sgn"
+						::octopus::display_message info "User requested to skip defining a test value on $crt_sgn"
 					}
 					lappend all_processed_signals $crt_sgn
 					eval uplevel #0 {define_dft test_mode -active $active $ssc $crt_sgn}
@@ -724,38 +724,38 @@ proc ::octopusRC::generate_list_of_clock_inverters_for_dft_shell args {
 
 	::octopus::abort_on error --return --display-help
 
-	display_message info "Ignore the Errors from here"
+	::octopus::display_message info "Ignore the Errors from here"
 
 	# Find the falling edge FF
 	set fall_edge_ffs [filter dft_test_clock_edge "fall" [concat [filter flop "true" [find / -inst *]] dft/scan_segments/*] ]
 	set last_clk_inverters ""
-	display_message debug "<2> List of falling edge flip-flops"
+	::octopus::display_message debug "<2> List of falling edge flip-flops"
 	foreach crt_ff $fall_edge_ffs {
-		display_message debug "<2> ================================================================================"
-		display_message debug "<2> $crt_ff"
+		::octopus::display_message debug "<2> ================================================================================"
+		::octopus::display_message debug "<2> $crt_ff"
 		set prev_inversion "-"
 		if { [catch {set clock_pin "[get_attribute clock $crt_ff]"} ] } {
 			set clock_pin "${crt_ff}/pins_in/CP"
 		}
-		display_message debug "<2> clock_pin=$clock_pin"
+		::octopus::display_message debug "<2> clock_pin=$clock_pin"
 		foreach iii [fanin $clock_pin] {
-			display_message debug "<2> ---"
+			::octopus::display_message debug "<2> ---"
 			set crt_inversion [lindex [lindex [get_attribute propagated_clocks $iii] 0] 3]
 			if { "$crt_inversion" != "$prev_inversion"} {
 				# There is a phase inversion record this instance
-				display_message debug "<2> Found the inverter: [vname $iii]"
+				::octopus::display_message debug "<2> Found the inverter: [vname $iii]"
 				lappend last_clk_inverters [vname [file dirname [file dirname $iii] ]]
 				# exit foreach loop since there is no need to continue
 				break
 			} else {
-				display_message debug "<2> $iii"
+				::octopus::display_message debug "<2> $iii"
 			}
-			display_message debug "<2> ---"
+			::octopus::display_message debug "<2> ---"
 			set prev_inversion $crt_inversion
 		}
-		display_message debug "<2> ================================================================================"
+		::octopus::display_message debug "<2> ================================================================================"
 	}
-	display_message info "Ignore Errors to here"
+	::octopus::display_message info "Ignore Errors to here"
 	set last_clk_inverters [lsort -unique $last_clk_inverters]
 
 	if { "$redirect" != "stdout" } {
@@ -871,7 +871,7 @@ proc ::octopusRC::read_cpf args {
 	set var_array(30,_REPORTS_PATH)	[list "--reports-path" "./rpt/" "string" "1" "1" "" "Where the reports will be generated" ]
 	extract_check_options_data
 	set  help_head {
-		display_message none "Reads the CPF file and does standard checks"
+		::octopus::display_message none "Reads the CPF file and does standard checks"
 	}
 	::octopus::abort_on error --return --display-help
 
@@ -898,7 +898,7 @@ proc ::octopusRC::synthesize args {
 	set var_array(30,_REPORTS_PATH)	[list "--reports-path" "./rpt/" "string" "1" "1" "" "Where the reports will be generated" ]
 	extract_check_options_data
 	set  help_head {
-		display_message none "Synthesize the design and writes out useful files: netlist, lec do, "
+		::octopus::display_message none "Synthesize the design and writes out useful files: netlist, lec do, "
 	}
 	::octopus::abort_on error --return --display-help
 
@@ -947,7 +947,7 @@ proc ::octopusRC::synthesize args {
 # procedure used to set_case_analysis based on the test data files of the TCB's'
 proc ::octopusRC::set_case_analysis args {
 
-	display_message warning "Entering poorly tested procedure!!!"
+	::octopus::display_message warning "Entering poorly tested procedure!!!"
 
 	set var_array(10,tcb-td-file)		[list "--tcb-td-file" "<none>" "string" "1" "infinity" "" "TCB test data file(s)" ]
 	set var_array(20,mode)			[list "--mode" "<none>" "string" "1" "1" "" "TCB mode for which constant values are extracted" ]
@@ -956,7 +956,7 @@ proc ::octopusRC::set_case_analysis args {
 	set var_array(50,append)		[list "--append" "false" "boolean" "" "" "" "Appends into <constraint-file> instead of truncating it" ]
 	extract_check_options_data
 	set  help_head {
-		display_message none "Extracts the TCB values in a specific mode and writes out set_case_analysis statements"
+		::octopus::display_message none "Extracts the TCB values in a specific mode and writes out set_case_analysis statements"
 	}
 	::octopus::abort_on error --return --display-help
 
@@ -967,7 +967,7 @@ proc ::octopusRC::set_case_analysis args {
 	}
 
 	if { [catch {set fileIDsdc [open ${constraint-file} "$ta WRONLY CREAT" 0640]} ] } {
-		display_message error "Cannot open ${constraint-file} file for writing."
+		::octopus::display_message error "Cannot open ${constraint-file} file for writing."
 		::octopus::append_cascading_variable
 		return 1
 	}
@@ -980,7 +980,7 @@ proc ::octopusRC::set_case_analysis args {
 		puts $fileIDsdc ""
 		set ports ""
 		if { [catch {set fileIDtcb [open $crt_file {RDONLY} ]} ] } {
-			display_message error "Cannot open $crt_file file for reading."
+			::octopus::display_message error "Cannot open $crt_file file for reading."
 		} else {
 			foreach line [split [read $fileIDtcb] "\{\}" ] {
 				if { ! [info exists cell] } {
@@ -1052,8 +1052,8 @@ proc ::octopusRC::read_hdl args {
 	set var_array(20,type)		[list "--type" "<none>" "string" "1" "1" "text utel rc" "type of file to read in" ]
 	extract_check_options_data
 	set  help_head {
-		display_message none "Reads in RTL files based on certain types of file lists"
-		display_message none "currently only rc and utel file list are supported"
+		::octopus::display_message none "Reads in RTL files based on certain types of file lists"
+		::octopus::display_message none "currently only rc and utel file list are supported"
 	}
 
 	::octopus::abort_on error --return --display-help
