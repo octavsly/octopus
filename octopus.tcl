@@ -688,13 +688,15 @@ proc ::octopus::parse_file_set args {
 		utel {
 			foreach crt_file ${file} {
 				# This file should defines a file_set variable
-				source $crt_file
+				if { [catch {source $crt_file} error_msg ] } {
+					::octopus::display_message error "Sourcing $crt_file. Error is: $error_msg"
+				}
 				set file_set_total [concat $file_set_total $file_set]
 			}
 			::octopus::abort_on error --return
 		}
 		diehard {
-			display_message error "Not implemented for time being"
+			::octopus::display_message error "Not implemented for time being"
 			::octopus::abort_on error --return
 		}
 	}

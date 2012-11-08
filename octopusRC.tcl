@@ -813,7 +813,7 @@ proc ::octopusRC::write args {
 	if { "${no-netlist}" == "false" } {
 		write_hdl >  ../NETLIST/${DESIGN}_netlist_${current-state}.v
 	}
-	if { "${no-lec}" == "false" && "$run_speed" != "fast"} {
+	if { "${no-lec}" == "false" && "$::octopusRC::run_speed" != "fast"} {
 		eval {
 		write_do_lec \
 			-hier \
@@ -822,7 +822,7 @@ proc ::octopusRC::write args {
 			> generated/${DESIGN}_do_lec_${previous-state}2${current-state}.cmd
 			}
 	}
-	if { "${no-database}" == "false" && "$run_speed" != "fast"} {
+	if { "${no-database}" == "false" && "$::octopusRC::run_speed" != "fast"} {
 		write_db ${DESIGN} -all_root_attributes -to_file ${DESIGN}_${current-state}.db
 	}
 
@@ -849,7 +849,7 @@ proc ::octopusRC::elaborate args {
 	puts "Runtime & Memory after 'read_hdl'"
 	timestat Elaboration
 
-	if { "$run_speed" != "fast"} {
+	if { "$::octopusRC::run_speed" != "fast"} {
 	check_design -all ${DESIGN} > ${_REPORTS_PATH}/${DESIGN}_check_design_elaborate.rpt
 	check_design -unresolved -undriven ${DESIGN} > ${_REPORTS_PATH}/${DESIGN}_check_design_unresolved_elaborate.rpt
 
@@ -877,7 +877,7 @@ proc ::octopusRC::read_cpf args {
 
 	eval uplevel #0 {read_cpf $cpf}
 
-	if { "$run_speed" != "fast"} {
+	if { "$::octopusRC::run_speed" != "fast"} {
 		check_library 		> ${_REPORTS_PATH}/${DESIGN}_check_cpf_library.rpt
 		check_cpf -detail 	> ${_REPORTS_PATH}/${DESIGN}_check_cpf.rpt
 		check_design -all > ${_REPORTS_PATH}/${DESIGN}_premap_design.chk
