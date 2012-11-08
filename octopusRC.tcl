@@ -893,7 +893,7 @@ proc ::octopusRC::read_cpf args {
 # design
 proc ::octopusRC::synthesize args {
 
-	set var_array(10,type)		[list "--type" "<none>" "string" "" "" "to_generic to_mapped to_mapped_incremental" "Specify to synthesis type" ]
+	set var_array(10,type)		[list "--type" "<none>" "string" "1" "1" "to_generic to_mapped to_mapped_incremental" "Specify to synthesis type" ]
 	set var_array(20,DESIGN)	[list "--design" "<none>" "string" "1" "1" "" "Design name" ]
 	set var_array(30,_REPORTS_PATH)	[list "--reports-path" "./rpt/" "string" "1" "1" "" "Where the reports will be generated" ]
 	extract_check_options_data
