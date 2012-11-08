@@ -1014,12 +1014,17 @@ proc ::octopusRC::set_case_analysis args {
 				set crt_port 	[lindex $cpv 0]
 				set crt_value 	[lindex $cpv 1]
 				if {! [string match "* $crt_port *" " ${skip-signal} "] } {
-					#set instance_path [get_attribute instances [find /des* -vname -subdes $cell ]]
-					set instance_path instnace
+					set instance_path [get_attribute instances [find /des* -subdes $cell ]]
 					if { [llength $instance_path] <=1 } {
-						puts $fileIDsdc "set_case_analysis $crt_value [fanin -max_pin_depth 1 ${instance_path}/${crt_port}]"
+						set full_path_fanin [vname [fanin -max_pin_depth 1 ${instance_path}/${crt_port}]]
+						if { $full_path_fanin ==  1 } {
+							::octopus::display_message error "Could not find ${instance_path}/${crt_port} in $DESIGN"
+						} else {
+							puts $fileIDsdc "#Derived from: ${crt_port}"
+							puts $fileIDsdc "set_case_analysis $crt_value $full_path_fanin"
+						}
 					} else {
-						display_message error "More than one TCB instantiation for $cell module has been found. Don't know what to td :-("
+						::octopus::display_message error "More than one TCB instantiation for $cell module has been found. Don't know what to td :-("
 					}
 				}
 			}
