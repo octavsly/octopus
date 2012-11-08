@@ -70,17 +70,16 @@ proc ::octopus::set_octopus_color args {
 #	Returns the calling procedure name. If there is an argument then it
 #	will return the caller's caller name and so forth
 #	http://tclhelp.net/unb/96
-proc ::octopus::calling_proc args {
+proc ::octopus::calling_proc { {offset 0} } {
 	global argv0
-
-	if { [catch {set offset [expr $args]}] } {set offset 0}
-	set level [expr [info level] - 2 - $offset]
-	if { $level <= 0 } {
+	
+	set lvl [expr [info level] - 2 - $offset]
+	if { $lvl <= 0 } {
 		return "$argv0"
-	} elseif { $level > [info level] } {
-		set level [info level]
+	} elseif { $lvl > [info level] } {
+		set lvl [info level]
 	}
-	return "[lindex [split [info level $level]] 0]"
+	return "[lindex [split [info level $lvl]] 0]"
 }
 # END calling_proc
 ################################################################################
@@ -98,7 +97,7 @@ proc ::octopus::display_message args {
 	set dl 1
 	regexp {<([0-9]+)>[\s]*(.*)} $string_msg match dl string_msg
 	if { ([info exists execution_trace(debug-level) ] && $execution_trace(debug-level) > 99) } {
-	     	set string_msg "[calling_proc]: $string_msg"
+	     	set string_msg "[::octopus::calling_proc]: $string_msg"
 	}
 	switch -- $type_msg {
 		error {
@@ -292,12 +291,12 @@ proc ::octopus::extract_check_options_data { } {
 	catch {set passed_options $passed_options_exec}
 
 	if { ! [info exists passed_options ] } {
-		display_message error "Procedure [calling_proc] is wrongly defined. Please replace list of variables with just args"
+		display_message error "Procedure [::octopus::calling_proc] is wrongly defined. Please replace list of variables with just args"
 		return
 	}
 
 	if { [info exists var_array] && [llength "[array names var_array]"] == 0 } {
-		display_message error "var_array, defined in [calling_proc], needs to be an array"
+		display_message error "var_array, defined in [::octopus::calling_proc], needs to be an array"
 		return
 	}
 
@@ -355,17 +354,17 @@ proc ::octopus::extract_check_options_data { } {
 
 		# BEGIN checks on user specified fields
 		if { ! [true_if_number [lindex $var_array_trunk($option_var) 3]] } {
-			display_message error "[calling_proc]: the minimum number of elements must be a number or empty. Currently this is [lindex $var_array_trunk($option_var) 3]"
+			display_message error "[::octopus::calling_proc]: the minimum number of elements must be a number or empty. Currently this is [lindex $var_array_trunk($option_var) 3]"
 			return
 		}
 		if { ! [true_if_number [lindex $var_array_trunk($option_var) 4]] && "[lindex $var_array_trunk($option_var) 4]" != "infinity" } {
-			display_message error "[calling_proc]: the maximum number of elements must be a number, infinity keyword or just empty. Currently this is [lindex $var_array_trunk($option_var) 4]"
+			display_message error "[::octopus::calling_proc]: the maximum number of elements must be a number, infinity keyword or just empty. Currently this is [lindex $var_array_trunk($option_var) 4]"
 			return
 		}
 		# END
 
 		if { [lindex $var_array_trunk($option_var) 3] > [lindex $var_array_trunk($option_var) 4] } {
-			display_message error "[calling_proc]: Minimum number of elements ($option_var_min_nr_elm) should not be bigger than the maximum number of elements ($option_var_max_nr_elm)."
+			display_message error "[::octopus::calling_proc]: Minimum number of elements ($option_var_min_nr_elm) should not be bigger than the maximum number of elements ($option_var_max_nr_elm)."
 			exit 1
 		}
 
@@ -397,7 +396,7 @@ proc ::octopus::extract_check_options_data { } {
 				# User specified a fraction of the command
 				set found_option [lsearch -all "$allowed_options" ${cur_option}*]
 				if { [llength $found_option] > 1 } {
-					display_message error "Option '${cur_option}', when calling '[calling_proc]', can match several options: "
+					display_message error "Option '${cur_option}', when calling '[::octopus::calling_proc]', can match several options: "
 					foreach iii $found_option {
 						display_message none "  [lindex $allowed_options $iii]"
 					}
@@ -474,10 +473,10 @@ proc ::octopus::extract_check_options_data { } {
 					incr accumulate_param_orphaned
 					set nr_given_args($option_name) $accumulate_param_orphaned
 				} else {
-					display_message error "Unknown option $cur_option passed [calling_proc]"
+					display_message error "Unknown option $cur_option passed [::octopus::calling_proc]"
 				}
 			} else {
-				display_message error "Unknown option $cur_option passed [calling_proc]"
+				display_message error "Unknown option $cur_option passed [::octopus::calling_proc]"
 			}
 		}
 	}
@@ -492,7 +491,7 @@ proc ::octopus::extract_check_options_data { } {
 	foreach option_var [array names var_array_trunk] {
 		if { ![info exists $option_var] } {
 			# This variable was never created while it should have been
-			display_message error "Option [lindex $var_array_trunk($option_var) 0] is compulsory when calling '[calling_proc]' procedure"
+			display_message error "Option [lindex $var_array_trunk($option_var) 0] is compulsory when calling '[::octopus::calling_proc]' procedure"
 		}
 	}
 	# DO not use abort_on or you get an infinite loop
@@ -505,19 +504,19 @@ proc ::octopus::extract_check_options_data { } {
 		set option_var_max_nr_elm	[lindex $var_array_trunk($option_var) 4]
 		set option_allowed_values	[lindex $var_array_trunk($option_var) 5]
 		if { "$option_var_type" == "number" && ! [ true_if_number [set $option_var] ] } {
-			display_message error "When calling [calling_proc], option passed to $option_name must be a number. Currently it is: [set $option_var]"
+			display_message error "When calling [::octopus::calling_proc], option passed to $option_name must be a number. Currently it is: [set $option_var]"
 		}
 
 		if { [info exists nr_given_args($option_name)] } {
 			if { $nr_given_args($option_name) > $option_var_max_nr_elm || $nr_given_args($option_name) < $option_var_min_nr_elm } {
-				display_message error "You have specified more/less number of arguments in [calling_proc] for $option_name option."
+				display_message error "You have specified more/less number of arguments in [::octopus::calling_proc] for $option_name option."
 			}
  		}
 
 		if  { "$option_allowed_values" != "" } {
 			foreach iii [set $option_var] {
 				if { [lsearch -exact "$option_allowed_values" "$iii" ] == -1  } {
-					display_message error "[calling_proc] Only the following values are allowed for $option_name: $option_allowed_values. However there is: $iii"
+					display_message error "[::octopus::calling_proc] Only the following values are allowed for $option_name: $option_allowed_values. However there is: $iii"
 				}
 			}
 		}
@@ -554,7 +553,7 @@ proc ::octopus::display_help {} {
 	catch { uplevel eval $help_head }
 	puts ""
 	puts "Usage:"
-	puts -nonewline "  [file tail [calling_proc]] "
+	puts -nonewline "  [file tail [::octopus::calling_proc]] "
 	set build_help ""
 	set extended_help "Options:"
 	set parse_twice 0
@@ -721,7 +720,7 @@ proc ::octopus::debug_variables args {
 	::octopus::abort_on error --return
 
 		if { "${no-locals}" == "false" } {
-			display_message info "Local variable seen at [calling_proc]"
+			display_message info "Local variable seen at [::octopus::calling_proc]"
 			uplevel {
 				foreach iii [info locals] {
 					display_message none "%b$iii%n=[set $iii]"
