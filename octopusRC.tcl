@@ -803,7 +803,7 @@ proc ::octopusRC::write args {
 	extract_check_options_data
 	::octopus::abort_on error --return --display-help
 
-	if { ! [info exists previous-state] ] } {
+	if { ! [info exists previous-state] } {
 		set previous-state "rtl"
 		set gdc ""
 	} else {
@@ -814,12 +814,12 @@ proc ::octopusRC::write args {
 		write_hdl >  ../NETLIST/${DESIGN}_netlist_${current-state}.v
 	}
 	if { "${no-lec}" == "false" && "$::octopusRC::run_speed" != "fast"} {
-		eval {
-		write_do_lec \
-			-hier \
-			$gdc \
-			-revised_design ../NETLIST/${DESIGN}_netlist_${current-state}.v \
-			> generated/${DESIGN}_do_lec_${previous-state}2${current-state}.cmd
+		uplevel #0 { eval 
+			write_do_lec \
+				-hier \
+				$gdc \
+				-revised_design ../NETLIST/${DESIGN}_netlist_${current-state}.v \
+				> generated/${DESIGN}_do_lec_${previous-state}2${current-state}.cmd
 			}
 	}
 	if { "${no-database}" == "false" && "$::octopusRC::run_speed" != "fast"} {
