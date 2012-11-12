@@ -1077,3 +1077,27 @@ proc ::octopusRC::read_hdl args {
 }
 # END
 ################################################################################
+
+
+################################################################################
+# BEGIN delete_unloaded_undrive
+# Procedure used to skip the delete_unloaded_undriven for early designs
+proc ::octopusRC::delete_unloaded_undriven args {
+
+	global DESIGN
+
+	set  help_head {
+		::octopus::display_message none "Deletes the unloaded and undriven. Depending on the design maturity this command is activated or not"
+	}
+
+	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pyrate" && \
+		"[get_attribute octopusRC_design_maturity_level]" != "bronze"} {
+		uplevel #0 {delete_unloaded_undriven -all -force_bit_blast ${DESIGN}}
+	} else {
+		display_message info "Skiping delete_unloaded_undriven due to the maturity of the design: [get_attribute octopusRC_design_maturity_level]"
+	}
+
+	::octopus::append_cascading_variables
+}
+# END
+################################################################################
