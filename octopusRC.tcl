@@ -564,7 +564,7 @@ proc ::octopusRC::read_dft_abstract_model args {
 			set fileID [open $crt_ctl_file {RDONLY} ]
 			foreach line [split [read $fileID] "\{\}"] {
 				# Process line
-				if { [ regexp ".*Environment[\s]+[\"\']*([^\"\']*)[\"\']*[\s]*" $line match crt_module ] } {
+				if { [ regexp {.*Environment[\s]+[\"\']*([^\"\']*)[\"\']*[\s]*} $line match crt_module ] } {
 					# Found the crt_module, just exit
 					::octopus::display_message debug "<2> Extracted module '$crt_module' from CTL file '$crt_ctl_file'"
 					break
@@ -797,6 +797,7 @@ proc ::octopusRC::write args {
 	global DESIGN
 
 	set var_array(10,current-state)		[list "--current-state" "<none>" "string" "1" "1" "" "String specifying the design state. Can be anything but recommended values are rtl, syn, scn. It is used in file names." ]
+	set var_array(20,path)			[list "--path" "<none>" "string" "1" "1" "" "Path were the netlist is written to." ]
 	set var_array(30,no-netlist)		[list "--no-netlist" "false" "boolean" "" "" "" "Prevents writing the design netlist" ]
 	set var_array(40,no-lec)		[list "--no-lec" "false" "boolean" "" "" "" "Prevents writing out the lec do files" ]
 	set var_array(50,no-database)		[list "--no-database" "false" "boolean" "" "" "" "Prevents writing the design database" ]
@@ -807,19 +808,23 @@ proc ::octopusRC::write args {
 		set previous-state "rtl"
 		set gdc ""
 	} else {
-		set gdc "-golden_design ../NETLIST/${DESIGN}_netlist_${previous-state}.v"
+		set gdc "-golden_design ${path}/${DESIGN}_netlist_${previous-state}.v"
 	}
 
 	if { "${no-netlist}" == "false" } {
-		write_hdl >  ../NETLIST/${DESIGN}_netlist_${current-state}.v
+		set ntlst ${path}/${DESIGN}_netlist_${current-state}.v
+		::octopus::display_message debug "<5> Writing netlist: $ntlst "
+		write_hdl >  $ntlst
 	}
 	if { "${no-lec}" == "false" && "$::octopusRC::run_speed" != "fast"} {
+		set lecdo "generated/${DESIGN}_do_lec_${previous-state}2${current-state}.cmd"
+		::octopus::display_message debug "<5> Writing lec do file : $lecdo "
 		uplevel #0 { eval 
 			write_do_lec \
 				-hier \
 				$gdc \
-				-revised_design ../NETLIST/${DESIGN}_netlist_${current-state}.v \
-				> generated/${DESIGN}_do_lec_${previous-state}2${current-state}.cmd
+				-revised_design ${ntlst} \
+				> $lecdo
 			}
 	}
 	if { "${no-database}" == "false" && "$::octopusRC::run_speed" != "fast"} {

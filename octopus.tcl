@@ -39,6 +39,8 @@ namespace eval ::octopus:: {
 	variable authors "Octavian Petre"
 	variable authors_email "octavsly@gmail.com"
 	variable url_project {https://github.com/octavsly/octopus}
+
+	variable prog_name ""
 }
 
 
@@ -64,6 +66,7 @@ proc ::octopus::set_octopus_color args {
 # END color_setting
 ################################################################################
 
+
 ################################################################################
 # BEGIN calling_proc
 # Description:
@@ -72,10 +75,15 @@ proc ::octopus::set_octopus_color args {
 #	http://tclhelp.net/unb/96
 proc ::octopus::calling_proc { {offset 0} } {
 	global argv0
-	
+	variable prog_name
+
 	set lvl [expr [info level] - 2 - $offset]
 	if { $lvl <= 0 } {
-		return "$argv0"
+		if { $prog_name != "" } {
+			return "$prog_name"
+		} else {
+			return "$argv0"
+		}
 	} elseif { $lvl > [info level] } {
 		set lvl [info level]
 	}
@@ -83,6 +91,8 @@ proc ::octopus::calling_proc { {offset 0} } {
 }
 # END calling_proc
 ################################################################################
+
+
 ################################################################################
 # BEGIN display_message
 # Procedure used in many flow_*.tcl scripts to generate unified error messages
@@ -717,28 +727,31 @@ proc ::octopus::debug_variables args {
 
 	set var_array(10,no-globals)  	[list "--no-globals" "false" "boolean" "" "" "" "Display the global variables."]
 	set var_array(20,no-locals)    	[list "--no-locals" "false" "boolean" "" "" "" "Display the local variables."]
+	set var_array(30,text)		[list "<orphaned>" "" "string" "1" "1" "" "Text to print before displaying the variables, to allow better pinpointing the location."]
 	::octopus::extract_check_options_data
 
 	::octopus::abort_on error --return
 
-		if { "${no-locals}" == "false" } {
-			display_message info "Local variable seen at [::octopus::calling_proc]"
-			uplevel {
-				foreach iii [info locals] {
-					display_message none "%b$iii%n=[set $iii]"
-				}
-				unset iii
+	if { "$text" != "" } {display_message none "$text"}
+
+	if { "${no-locals}" == "false" } {
+		display_message info "Local variable seen at [::octopus::calling_proc]"
+		uplevel {
+			foreach iii [info locals] {
+				display_message none "%b$iii%n=[set $iii]"
 			}
+			unset iii
 		}
-		if { "${no-globals}" == "false" } {
-			display_message info "Global variable"
-			uplevel {
-				foreach iii [info globals] {
-					catch {display_message none "%b$iii%n=[set $iii]"}
-				}
-				unset iii
+	}
+	if { "${no-globals}" == "false" } {
+		display_message info "Global variable"
+		uplevel {
+			foreach iii [info globals] {
+				catch {display_message none "%b$iii%n=[set $iii]"}
 			}
+			unset iii
 		}
+	}
 }
 # END
 ################################################################################
