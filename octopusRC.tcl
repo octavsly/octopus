@@ -797,7 +797,7 @@ proc ::octopusRC::write args {
 	global DESIGN
 
 	set var_array(10,current-state)		[list "--current-state" "<none>" "string" "1" "1" "" "String specifying the design state. Can be anything but recommended values are rtl, syn, scn. It is used in file names." ]
-	set var_array(20,path)			[list "--path" "<none>" "string" "1" "1" "" "Path were the netlist is written to." ]
+	set var_array(20,netlist-path)		[list "--netlist-path" "<none>" "string" "1" "1" "" "Path were the netlist is written to." ]
 	set var_array(30,no-netlist)		[list "--no-netlist" "false" "boolean" "" "" "" "Prevents writing the design netlist" ]
 	set var_array(40,no-lec)		[list "--no-lec" "false" "boolean" "" "" "" "Prevents writing out the lec do files" ]
 	set var_array(50,no-database)		[list "--no-database" "false" "boolean" "" "" "" "Prevents writing the design database" ]
@@ -808,11 +808,11 @@ proc ::octopusRC::write args {
 		set previous-state "rtl"
 		set gdc ""
 	} else {
-		set gdc "-golden_design ${path}/${DESIGN}_netlist_${previous-state}.v"
+		set gdc "-golden_design ${netlist-path}/${DESIGN}_netlist_${previous-state}.v"
 	}
 
 	if { "${no-netlist}" == "false" } {
-		set ntlst ${path}/${DESIGN}_netlist_${current-state}.v
+		set ntlst ${netlist-path}/${DESIGN}_netlist_${current-state}.v
 		::octopus::display_message debug "<5> Writing netlist: $ntlst "
 		write_hdl >  $ntlst
 	}
@@ -899,8 +899,9 @@ proc ::octopusRC::read_cpf args {
 proc ::octopusRC::synthesize args {
 
 	set var_array(10,type)		[list "--type" "<none>" "string" "1" "1" "to_generic to_mapped to_mapped_incremental" "Specify to synthesis type" ]
-	set var_array(20,DESIGN)	[list "--design" "<none>" "string" "1" "1" "" "Design name" ]
-	set var_array(30,_REPORTS_PATH)	[list "--reports-path" "./rpt/" "string" "1" "1" "" "Where the reports will be generated" ]
+	set var_array(20,netlist-path)	[list "--netlist-path" "<none>" "string" "1" "1" "" "Path were the netlist is written to." ]
+	set var_array(30,DESIGN)	[list "--design" "<none>" "string" "1" "1" "" "Design name" ]
+	set var_array(40,_REPORTS_PATH)	[list "--reports-path" "./rpt/" "string" "1" "1" "" "Where the reports will be generated" ]
 	extract_check_options_data
 	set  help_head {
 		::octopus::display_message none "Synthesize the design and writes out useful files: netlist, lec do, "
@@ -925,13 +926,13 @@ proc ::octopusRC::synthesize args {
 			eval uplevel #0 {synthesize -to_generic -eff $effort_generic}
 			puts "Runtime & Memory after synthesize to generic"
 			timestat GENERIC
-			::octopusRC::write --current-state gen
+			::octopusRC::write --current-state gen --netlist-path $path
 		}
 		to_mapped {
 			eval uplevel #0 {synthesize -to_mapped -eff $effort_mapped -no_incr -auto_identify_shift_register}
 			puts "Runtime & Memory after synthesize to mapped"
 			timestat MAPPED
-			::octopusRC::write --current-state mapped
+			::octopusRC::write --current-state mapped --netlist-path $path
 			check_design -unresolved > $_REPORTS_PATH/${DESIGN}_postmap_design.chk
 		}
 		to_mapped_inc {
@@ -939,7 +940,7 @@ proc ::octopusRC::synthesize args {
 			report summary
 			puts "Runtime & Memory after incremental synthesis"
 			timestat INCREMENTAL
-			::octopusRC::write --current-state inc_scn
+			::octopusRC::write --current-state inc_scn --netlist-path $path
 		}
 	}
 }
