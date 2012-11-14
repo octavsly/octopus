@@ -1095,7 +1095,7 @@ proc ::octopusRC::delete_unloaded_undriven args {
 		::octopus::display_message none "Deletes the unloaded and undriven. Depending on the design maturity this command is activated or not"
 	}
 
-	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pyrate" && \
+	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pyrite" && \
 		"[get_attribute octopusRC_design_maturity_level]" != "bronze"} {
 		uplevel #0 {delete_unloaded_undriven -all -force_bit_blast ${DESIGN}}
 	} else {
