@@ -926,13 +926,13 @@ proc ::octopusRC::synthesize args {
 			eval uplevel #0 {synthesize -to_generic -eff $effort_generic}
 			puts "Runtime & Memory after synthesize to generic"
 			timestat GENERIC
-			::octopusRC::write --current-state gen --netlist-path $path
+			::octopusRC::write --current-state gen --netlist-path ${netlist-path}
 		}
 		to_mapped {
 			eval uplevel #0 {synthesize -to_mapped -eff $effort_mapped -no_incr -auto_identify_shift_register}
 			puts "Runtime & Memory after synthesize to mapped"
 			timestat MAPPED
-			::octopusRC::write --current-state mapped --netlist-path $path
+			::octopusRC::write --current-state mapped --netlist-path ${netlist-path}
 			check_design -unresolved > $_REPORTS_PATH/${DESIGN}_postmap_design.chk
 		}
 		to_mapped_inc {
@@ -940,7 +940,7 @@ proc ::octopusRC::synthesize args {
 			report summary
 			puts "Runtime & Memory after incremental synthesis"
 			timestat INCREMENTAL
-			::octopusRC::write --current-state inc_scn --netlist-path $path
+			::octopusRC::write --current-state inc_scn --netlist-path ${netlist-path}
 		}
 	}
 }
