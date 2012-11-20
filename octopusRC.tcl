@@ -452,7 +452,7 @@ proc ::octopusRC::set_attribute_recursive args {
 	if { $safe >= 9999 } {
 		::octopus::display_message error "Maximum number of instances achieved, being $safe. Not all instances received the attribute."
 	}
-
+	::octopus::append_cascading_variables
 }
 
 # END
@@ -828,7 +828,8 @@ proc ::octopusRC::write args {
 			}
 	}
 	if { "${no-database}" == "false" && "$::octopusRC::run_speed" != "fast"} {
-		write_db ${DESIGN} -all_root_attributes -to_file ${DESIGN}_${current-state}.db
+		shell mkdir -p db
+		uplevel #0 { eval write_db ${DESIGN} -all_root_attributes -to_file db/${DESIGN}_${current-state}.db}
 	}
 
 	set previous-state ${current-state}
@@ -855,9 +856,8 @@ proc ::octopusRC::elaborate args {
 	timestat Elaboration
 
 	if { "$::octopusRC::run_speed" != "fast"} {
-	check_design -all ${DESIGN} > ${_REPORTS_PATH}/${DESIGN}_check_design_elaborate.rpt
-	check_design -unresolved -undriven ${DESIGN} > ${_REPORTS_PATH}/${DESIGN}_check_design_unresolved_elaborate.rpt
-
+	set date [exec date +%s]
+	check_design -all ${DESIGN} > ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.rpt
 	report ple > ${_REPORTS_PATH}/${DESIGN}_report_ple.rpt
 	}
 }
@@ -883,9 +883,10 @@ proc ::octopusRC::read_cpf args {
 	eval uplevel #0 {read_cpf $cpf}
 
 	if { "$::octopusRC::run_speed" != "fast"} {
-		check_library 		> ${_REPORTS_PATH}/${DESIGN}_check_cpf_library.rpt
-		check_cpf -detail 	> ${_REPORTS_PATH}/${DESIGN}_check_cpf.rpt
-		check_design -all > ${_REPORTS_PATH}/${DESIGN}_premap_design.chk
+		set date [exec date +%s]
+		check_library 		> ${_REPORTS_PATH}/${DESIGN}_check_library_${date}.rpt
+		check_cpf -detail 	> ${_REPORTS_PATH}/${DESIGN}_check_cpf_${date}.rpt
+		check_design -all 	> ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.chk
 	}
 }
 # END
@@ -933,7 +934,8 @@ proc ::octopusRC::synthesize args {
 			puts "Runtime & Memory after synthesize to mapped"
 			timestat MAPPED
 			::octopusRC::write --current-state mapped --netlist-path ${netlist-path}
-			check_design -unresolved > $_REPORTS_PATH/${DESIGN}_postmap_design.chk
+			set date [exec date +%s]
+			check_design -all > $_REPORTS_PATH/${DESIGN}_check_design_${date}.chk
 		}
 		to_mapped_inc {
 			eval uplevel #0 {synthesize -to_mapped -eff $effort_incremental -incr}
