@@ -513,12 +513,12 @@ proc ::octopusRC::define_dft_test_clocks args {
 			}
 	        	lappend all_clock_drivers $clock_driver
 			::octopus::display_message info "Defining a test clock on $clock_driver"
-		        eval uplevel #0 {define_dft \
+		        define_dft \
         	        	test_clock \
 	                	-name $clock_name \
 		                -domain multi_clock_domains_chains \
 		                -controllable \
-				$clock_driver}
+				$clock_driver
 		}
 	}
 	::octopus::display_message info "END Defining test clocks from SDC"
@@ -584,11 +584,11 @@ proc ::octopusRC::read_dft_abstract_model args {
 			set unresolved_instantiations [filter subdesign "/designs/*/subdesigns/$crt_module" [filter unresolved true [find /designs -inst *] ] ]
 			set instances [concat $library_instantiations $unresolved_instantiations ]
 			foreach crt_instance $instances {
-				eval uplevel #0 {read_dft_abstract_model \
+				::read_dft_abstract_model \
 					-segment_prefix "[file tail ${crt_module}]=[file tail ${crt_instance}]++" \
 					-instance $crt_instance \
 					$assume_connected_shift_enable \
-					-ctl $crt_ctl_file }
+					-ctl $crt_ctl_file
 			}
 			if { [ llength $instances ] == 0 } {
 					::octopus::display_message error "There is no instantiation of module ${crt_module}. Was this optimized away?"
@@ -610,11 +610,11 @@ proc ::octopusRC::read_dft_abstract_model args {
 				}
 				set iii 0
 				foreach crt_instance [get_attribute instances $full_path_crt_module] {
-					eval uplevel #0 {read_dft_abstract_model \
+					::read_dft_abstract_model \
 						-segment_prefix "[file tail ${crt_module}]=[file tail ${crt_instance}]++${iii}" \
 						-instance $crt_instance \
 						$assume_connected_shift_enable \
-						-ctl $crt_ctl_file }
+						-ctl $crt_ctl_file
 					incr iii
 				}
 			}
@@ -700,7 +700,7 @@ proc ::octopusRC::define_dft_test_signals args {
 						::octopus::display_message info "User requested to skip defining a test value on $crt_sgn"
 					}
 					lappend all_processed_signals $crt_sgn
-					eval uplevel #0 {define_dft test_mode -active $active $ssc $crt_sgn}
+					define_dft test_mode -active $active $ssc $crt_sgn
 				}
 			}
 		}
@@ -820,17 +820,11 @@ proc ::octopusRC::write args {
 	if { "${no-lec}" == "false" && "$::octopusRC::run_speed" != "fast"} {
 		set lecdo "generated/${DESIGN}_do_lec_${previous-state}2${current-state}.cmd"
 		::octopus::display_message debug "<5> Writing lec do file : $lecdo "
-		uplevel #0 { eval 
-			write_do_lec \
-				-hier \
-				$gdc \
-				-revised_design ${ntlst} \
-				> $lecdo
-			}
+		write_do_lec -hier $gdc -revised_design ${ntlst} > $lecdo
 	}
 	if { "${no-database}" == "false" && "$::octopusRC::run_speed" != "fast"} {
 		shell mkdir -p db
-		uplevel #0 { eval write_db ${DESIGN} -all_root_attributes -to_file db/${DESIGN}_${current-state}.db}
+		write_db ${DESIGN} -all_root_attributes -to_file db/${DESIGN}_${current-state}.db
 	}
 
 	set previous-state ${current-state}
@@ -852,15 +846,15 @@ proc ::octopusRC::elaborate args {
 	extract_check_options_data
 	::octopus::abort_on error --return --display-help
 
-	eval uplevel #0 {elaborate ${DESIGN}}
+	::elaborate ${DESIGN}
 
 	puts "Runtime & Memory after 'read_hdl'"
 	timestat Elaboration
 
 	if { "$::octopusRC::run_speed" != "fast"} {
-	set date [exec date +%s]
-	check_design -all ${DESIGN} > ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.rpt
-	report ple > ${_REPORTS_PATH}/${DESIGN}_report_ple.rpt
+		set date [exec date +%s]
+		check_design -all ${DESIGN} > ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.rpt
+		report ple > ${_REPORTS_PATH}/${DESIGN}_report_ple.rpt
 	}
 }
 # END
@@ -884,13 +878,13 @@ proc ::octopusRC::read_cpf args {
 	}
 	::octopus::abort_on error --return --display-help
 
-	eval uplevel #0 {read_cpf $cpf}
+	::read_cpf $cpf
 
 	if { "$::octopusRC::run_speed" != "fast"} {
 		set date [exec date +%s]
 		check_library 		> ${_REPORTS_PATH}/${DESIGN}_check_library_${date}.rpt
-		check_cpf -detail 	> ${_REPORTS_PATH}/${DESIGN}_check_cpf_${date}.rpt
-		check_design -all 	> ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.chk
+		check_cpf -detail 	> ${_REPORTS_PATH}/${DESIGN}_check_cpf_${date}.rpt}
+		check_design -all 	> ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.chk}
 	}
 }
 # END
@@ -930,21 +924,21 @@ proc ::octopusRC::synthesize args {
 
 	switch -- $type {
 		to_generic {
-			eval uplevel #0 {synthesize -to_generic -eff $effort_generic}
+			::synthesize -to_generic -eff $effort_generic
 			puts "Runtime & Memory after synthesize to generic"
 			timestat GENERIC
 			::octopusRC::write --current-state gen --netlist-path ${netlist-path}
 		}
 		to_mapped {
-			eval uplevel #0 {synthesize -to_mapped -eff $effort_mapped -no_incr -auto_identify_shift_register}
+			::synthesize -to_mapped -eff $effort_mapped -no_incr -auto_identify_shift_register
 			puts "Runtime & Memory after synthesize to mapped"
 			timestat MAPPED
 			::octopusRC::write --current-state mapped --netlist-path ${netlist-path}
 			set date [exec date +%s]
-			check_design -all > $_REPORTS_PATH/${DESIGN}_check_design_${date}.chk
+			::check_design -all > $_REPORTS_PATH/${DESIGN}_check_design_${date}.chk
 		}
 		to_mapped_inc {
-			eval uplevel #0 {synthesize -to_mapped -eff $effort_incremental -incr}
+			::synthesize -to_mapped -eff $effort_incremental -incr
 			report summary
 			puts "Runtime & Memory after incremental synthesis"
 			timestat INCREMENTAL
@@ -1111,7 +1105,7 @@ proc ::octopusRC::delete_unloaded_undriven args {
 
 	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pyrite" && \
 		"[get_attribute octopusRC_design_maturity_level]" != "bronze"} {
-		uplevel #0 {delete_unloaded_undriven -all -force_bit_blast ${DESIGN}}
+		::delete_unloaded_undriven -all -force_bit_blast ${DESIGN}
 	} else {
 		display_message info "Skiping delete_unloaded_undriven due to the maturity of the design: [get_attribute octopusRC_design_maturity_level]"
 	}
