@@ -312,7 +312,9 @@ proc ::octopus::extract_check_options_data { } {
 
 	# Setting default value for debug level to the one of the calling procedure
 	# In this way if no --debug-level option is specified use the parent level
-	if { [catch {set dd [uplevel 2 {set execution_trace(debug-level)}]} ] } {
+	if { [info level] >= 2 && [uplevel 2 {info exists execution_trace(debug-level)} ] } {
+		set dd [uplevel 2 {set execution_trace(debug-level)}]
+	} else {
 		set dd 0
 	}
 	# Add the help/debug automatically
@@ -589,7 +591,7 @@ proc ::octopus::display_help {} {
 				set td ""
 			}
 
-			if { [true_if_number $max_nr_arg]  && $max_nr_arg > 1 } {
+			if { $max_nr_arg != "" && [true_if_number $max_nr_arg]  && $max_nr_arg > 1 } {
 				set td "${td}...${td}"
 			}
 			if { "$default" != "<none>" && "$default" != "" } {
