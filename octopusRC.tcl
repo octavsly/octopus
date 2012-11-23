@@ -981,7 +981,11 @@ proc ::octopusRC::set_case_analysis args {
 		::octopus::append_cascading_variable
 		return 1
 	}
-	puts $fileIDsdc "# File created by ::octopusRC::set_case_analysis procedure"
+	if { "$append" == "true" } {
+		puts $fileIDsdc "# Appended by ::octopusRC::set_case_analysis procedure"
+	} else {
+		puts $fileIDsdc "# File created by ::octopusRC::set_case_analysis procedure"
+	}
 	set date_time [exec date]
 	puts $fileIDsdc "# on :: $date_time"
 
@@ -1058,8 +1062,11 @@ proc ::octopusRC::set_case_analysis args {
 # Procedure used to read in files based on various file lists
 proc ::octopusRC::read_hdl args {
 
+	global env
+
 	set var_array(10,file)		[list "--file" "<none>" "string" "1" "infinity" "" "File(s) containing the list with all RTL to be read " ]
-	set var_array(20,type)		[list "--type" "<none>" "string" "1" "1" "text utel rc" "type of file to read in" ]
+	set var_array(20,type)		[list "--type" "<none>" "string" "1" "1" "text utel rc" "Type of file to read in" ]
+	set var_array(30,skip-files)	[list "--skip-files" "<none>" "string" "1" "infinity" "" "Skip the file(s). E.g. interfaces/behaviour/etc. Should be exactly the same as specified in 'file'" ]
 	extract_check_options_data
 	set  help_head {
 		::octopus::display_message none "Reads in RTL files based on certain types of file lists"
@@ -1072,13 +1079,17 @@ proc ::octopusRC::read_hdl args {
 
 	foreach x $file_set_total {
 		foreach { f t l o } $x {
-			case $t in {
-			"verilog" {
-				eval uplevel #0 {read_hdl $f -library $l}
+			if { ! [ string match "*[subst $f]*" ${skip-files} ] } {
+				case $t in {
+				"verilog" {
+					::read_hdl -v2001 $f -library $l
+					}
+				"vhdl" {
+					::read_hdl -vhdl $f -library $l
+					}
 				}
-			"vhdl" {
-				eval uplevel #0 {read_hdl -vhdl $f -library $l}
-				}
+			} else {
+				display_message debug "<2> Skipping reading in $f file at request of the user"
 			}
 		}
 	}
