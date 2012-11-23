@@ -794,13 +794,14 @@ proc ::octopusRC::generate_list_of_clock_inverters_for_dft_shell args {
 proc ::octopusRC::write args {
 
 	global previous-state
-	global DESIGN
+	::octopusRC::check_set_common_vars
 
 	set var_array(10,current-state)		[list "--current-state" "<none>" "string" "1" "1" "" "String specifying the design state. Can be anything but recommended values are rtl, syn, scn. It is used in file names." ]
 	set var_array(20,netlist-path)		[list "--netlist-path" "<none>" "string" "1" "1" "" "Path were the netlist is written to." ]
 	set var_array(30,no-netlist)		[list "--no-netlist" "false" "boolean" "" "" "" "Prevents writing the design netlist" ]
 	set var_array(40,no-lec)		[list "--no-lec" "false" "boolean" "" "" "" "Prevents writing out the lec do files" ]
 	set var_array(50,no-database)		[list "--no-database" "false" "boolean" "" "" "" "Prevents writing the design database" ]
+	set var_array(60,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
 	extract_check_options_data
 	::octopus::abort_on error --return --display-help
 
@@ -844,9 +845,10 @@ proc ::octopusRC::write args {
 # design
 proc ::octopusRC::elaborate args {
 
+	::octopusRC::check_set_common_vars
 
-	set var_array(10,DESIGN)		[list "--design" "<none>" "string" "1" "1" "" "Design for which elaboration will take place" ]
-	set var_array(20,_REPORTS_PATH)		[list "--reports-path" "./rpt/" "string" "1" "1" "" "Where the reports will be generated" ]
+	set var_array(10,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Design for which elaboration will take place" ]
+	set var_array(20,_REPORTS_PATH)		[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
 	extract_check_options_data
 	::octopus::abort_on error --return --display-help
 
@@ -871,9 +873,11 @@ proc ::octopusRC::elaborate args {
 # design
 proc ::octopusRC::read_cpf args {
 
+	::octopusRC::check_set_common_vars
+
 	set var_array(10,cpf)		[list "--cpf" "<none>" "string" "1" "1" "" "CPF file" ]
-	set var_array(20,DESIGN)	[list "--design" "<none>" "string" "1" "1" "" "Design name" ]
-	set var_array(30,_REPORTS_PATH)	[list "--reports-path" "./rpt/" "string" "1" "1" "" "Where the reports will be generated" ]
+	set var_array(20,DESIGN)	[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
+	set var_array(30,_REPORTS_PATH)	[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
 	extract_check_options_data
 	set  help_head {
 		::octopus::display_message none "Reads the CPF file and does standard checks"
@@ -899,10 +903,12 @@ proc ::octopusRC::read_cpf args {
 # design
 proc ::octopusRC::synthesize args {
 
+	::octopusRC::check_set_common_vars
+
 	set var_array(10,type)		[list "--type" "<none>" "string" "1" "1" "to_generic to_mapped to_mapped_incremental" "Specify to synthesis type" ]
 	set var_array(20,netlist-path)	[list "--netlist-path" "<none>" "string" "1" "1" "" "Path were the netlist is written to." ]
-	set var_array(30,DESIGN)	[list "--design" "<none>" "string" "1" "1" "" "Design name" ]
-	set var_array(40,_REPORTS_PATH)	[list "--reports-path" "./rpt/" "string" "1" "1" "" "Where the reports will be generated" ]
+	set var_array(30,DESIGN)	[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
+	set var_array(40,_REPORTS_PATH)	[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
 	extract_check_options_data
 	set  help_head {
 		::octopus::display_message none "Synthesize the design and writes out useful files: netlist, lec do, "
@@ -956,12 +962,14 @@ proc ::octopusRC::synthesize args {
 proc ::octopusRC::set_case_analysis args {
 
 	::octopus::display_message warning "Entering poorly tested procedure!!!"
+	::octopusRC::check_set_common_vars
 
 	set var_array(10,tcb-td-file)		[list "--tcb-td-file" "<none>" "string" "1" "infinity" "" "TCB test data file(s)" ]
 	set var_array(20,mode)			[list "--mode" "<none>" "string" "1" "1" "" "TCB mode for which constant values are extracted" ]
 	set var_array(30,skip-signal)		[list "--skip-signal" "" "string" "1" "infinity" "" "Skip the TCB signal(s)" ]
 	set var_array(40,constraint-file)	[list "--constraint-file" "<none>" "string" "1" "1" "" "The name of the file where the constraints are written into" ]
 	set var_array(50,append)		[list "--append" "false" "boolean" "" "" "" "Appends into <constraint-file> instead of truncating it" ]
+	set var_array(60,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
 	extract_check_options_data
 	set  help_head {
 		::octopus::display_message none "Extracts the TCB values in a specific mode and writes out set_case_analysis statements"
@@ -1092,11 +1100,14 @@ proc ::octopusRC::read_hdl args {
 # Procedure used to skip the delete_unloaded_undriven for early designs
 proc ::octopusRC::delete_unloaded_undriven args {
 
-	global DESIGN
+	::octopusRC::check_set_common_vars
 
 	set  help_head {
 		::octopus::display_message none "Deletes the unloaded and undriven. Depending on the design maturity this command is activated or not"
 	}
+	set var_array(60,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
+	extract_check_options_data
+
 
 	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pyrite" && \
 		"[get_attribute octopusRC_design_maturity_level]" != "bronze"} {
@@ -1108,4 +1119,39 @@ proc ::octopusRC::delete_unloaded_undriven args {
 	::octopus::append_cascading_variables
 }
 # END
+################################################################################
+
+
+################################################################################
+# BEGIN check_set_common_vars
+proc ::octopusRC::check_set_common_vars args {
+
+	foreach crt_var "DESIGN _REPORTS_PATH" {
+		puts "[eval {uplevel #0 {catch {set $crt_var}}} ]"
+		if { [eval {uplevel #0 {catch {set $crt_var}}} ] } {
+			puts "setting $crt_var to none"
+			eval {uplevel {set $crt_var "<none>"}}
+		} else {
+			puts "setting $crt_var to top"
+			eval {uplevel {set $crt_var [uplevel #0 {set $crt_var}]}}
+		}
+	}
+}
+# END check_set_common_vars
+################################################################################
+
+
+################################################################################
+# BEGIN check_set_common_vars
+proc ::octopusRC::clean_reports args {
+
+	::octopusRC::check_set_common_vars
+
+	set var_array(30,_REPORTS_PATH)	[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
+	extract_check_options_data
+
+	exec rm -rf [glob -nocomplain $_REPORTS_PATH/*]
+
+}
+# END check_set_common_vars
 ################################################################################
