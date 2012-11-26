@@ -895,8 +895,8 @@ proc ::octopusRC::read_cpf args {
 	if { "$::octopusRC::run_speed" != "fast"} {
 		set date [exec date +%s]
 		check_library 		> ${_REPORTS_PATH}/${DESIGN}_check_library_${date}.rpt
-		check_cpf -detail 	> ${_REPORTS_PATH}/${DESIGN}_check_cpf_${date}.rpt}
-		check_design -all 	> ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.chk}
+		check_cpf -detail 	> ${_REPORTS_PATH}/${DESIGN}_check_cpf_${date}.rpt
+		check_design -all 	> ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.chk
 	}
 }
 # END
