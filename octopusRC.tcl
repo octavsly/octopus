@@ -801,7 +801,8 @@ proc ::octopusRC::write args {
 	set var_array(30,no-netlist)		[list "--no-netlist" "false" "boolean" "" "" "" "Prevents writing the design netlist" ]
 	set var_array(40,no-lec)		[list "--no-lec" "false" "boolean" "" "" "" "Prevents writing out the lec do files" ]
 	set var_array(50,no-database)		[list "--no-database" "false" "boolean" "" "" "" "Prevents writing the design database" ]
-	set var_array(60,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
+	set var_array(60,change-names)		[list "--change-names" "false" "boolean" "" "" "" "Allow only \"characters\", \"_\" and \" \[ \]\"." ]
+	set var_array(70,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
 	extract_check_options_data
 	::octopus::abort_on error --return --display-help
 
@@ -815,6 +816,17 @@ proc ::octopusRC::write args {
 	if { "${no-netlist}" == "false" } {
 		set ntlst ${netlist-path}/${DESIGN}_netlist_${current-state}.v
 		::octopus::display_message debug "<5> Writing netlist: $ntlst "
+		if { "$change-names" == "true" } {
+			::octopus::display_message debug "<5> Changing netlist names"
+			set_attribute preserve 
+			set unpreserve [concat gt_ lt_ add_ geq_ leq_ abs_ csa_ sub_]
+
+			foreach item $unpreserve {
+				set gt [find / -subdesign ${item}*] 
+				if { [llength $gt] > 0 } { set_attribute preserve false $gt}
+			}
+			change_names -allowed ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_\[\]
+		}
 		write_hdl >  $ntlst
 	}
 	if { "${no-lec}" == "false" && "$::octopusRC::run_speed" != "fast"} {
@@ -911,7 +923,7 @@ proc ::octopusRC::synthesize args {
 
 	# Specify the effort required for Generic Synthesis. It is recommended to
 	# specify medium for Generic and non incremental synthesis for the first run
-	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pyrate" && \
+	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pyrite" && \
 		"[get_attribute octopusRC_design_maturity_level]" != "bronze"} {
 		set effort_generic 	medium
 		set effort_mapped 	medium
