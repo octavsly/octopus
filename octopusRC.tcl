@@ -818,7 +818,7 @@ proc ::octopusRC::write args {
 	if { "${no-netlist}" == "false" } {
 		set ntlst ${netlist-path}/${DESIGN}_netlist_${current-state}.v
 		::octopus::display_message debug "<5> Writing netlist: $ntlst "
-		if { "$change-names" == "true" } {
+		if { "${change-names}" == "true" } {
 			::octopus::display_message debug "<5> Changing netlist names"
 			set_attribute preserve 
 			set unpreserve [concat gt_ lt_ add_ geq_ leq_ abs_ csa_ sub_]
@@ -1096,10 +1096,10 @@ proc ::octopusRC::read_hdl args {
 			if { ! [ string match "*[subst $f]*" ${skip-files} ] } {
 				case $t in {
 				"verilog" {
-					::read_hdl -v2001 $f -library $l
+					eval ::read_hdl -v2001 $f -library $l
 					}
 				"vhdl" {
-					::read_hdl -vhdl $f -library $l
+					eval ::read_hdl -vhdl $f -library $l
 					}
 				}
 			} else {
@@ -1169,7 +1169,7 @@ proc ::octopusRC::clean_reports args {
 	set var_array(30,_REPORTS_PATH)	[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
 	extract_check_options_data
 
-	exec rm -rf [glob -nocomplain $_REPORTS_PATH/*]
+	eval file delete -force [glob -nocomplain $_REPORTS_PATH/*]
 
 }
 # END check_set_common_vars
