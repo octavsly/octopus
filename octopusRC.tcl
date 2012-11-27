@@ -834,11 +834,11 @@ proc ::octopusRC::write args {
 	if { "${no-lec}" == "false" && "$::octopusRC::run_speed" != "fast"} {
 		set lecdo "generated/${DESIGN}_do_lec_${previous-state}2${current-state}.cmd"
 		::octopus::display_message debug "<5> Writing lec do file : $lecdo "
-		write_do_lec -hier $gdc -revised_design ${ntlst} > $lecdo
+		eval ::write_do_lec -hier $gdc -revised_design ${ntlst} > $lecdo
 	}
 	if { "${no-database}" == "false" && "$::octopusRC::run_speed" != "fast"} {
 		shell mkdir -p db
-		write_db ${DESIGN} -all_root_attributes -to_file db/${DESIGN}_${current-state}.db
+		::write_db ${DESIGN} -all_root_attributes -to_file db/${DESIGN}_${current-state}.db
 	}
 
 	set previous-state ${current-state}
