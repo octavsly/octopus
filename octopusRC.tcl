@@ -98,9 +98,11 @@ proc ::octopusRC::set_design_maturity_level args {
 			}
 			if { [ regexp {[\s]*([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+(.*)} $line match \
 				rc_attribute value(pyrite) value(bronze) value(silver) value(gold) value(diamond) comment ] } {
-				::octopus::display_message debug "<2> set_attribute $rc_attribute $value(${maturity-level})"
 				if { "$value(${maturity-level})" != "-" } {
+					::octopus::display_message debug "<2> set_attribute $rc_attribute $value(${maturity-level})"
 					set_attribute $rc_attribute $value(${maturity-level})
+				} else {
+					::octopus::display_message debug "<2> Using default attribute for $rc_attribute : [get_attribute $rc_attribute]"
 				}
 				if { ${rc_attribute} == "hdl_track_filename_row_col" } {
 					::octopus::display_message warning "hdl_track_filename_row_col attribute is known to create problems like slow-down and crashes"
