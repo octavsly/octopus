@@ -1143,18 +1143,25 @@ proc ::octopusRC::delete_unloaded_undriven args {
 
 ################################################################################
 # BEGIN check_set_common_vars
+# This ugly procedure sets the DESIGN/_REPORTS_PATH variable at the calling procedure to <none> or to
+# the top-level values.
 proc ::octopusRC::check_set_common_vars args {
 
 	foreach crt_var "DESIGN _REPORTS_PATH" {
-		puts "[eval {uplevel #0 {catch {set $crt_var}}} ]"
-		if { [eval {uplevel #0 {catch {set $crt_var}}} ] } {
-			puts "setting $crt_var to none"
-			eval {uplevel {set $crt_var "<none>"}}
+		set cmd [list uplevel #0 [list catch [list set $crt_var]]]
+
+		if { [eval $cmd ] } {
+			display_message debug "<10> Setting $crt_var to <none>"
+			set cmd [list uplevel [list set $crt_var "<none>"]]
+			eval $cmd
 		} else {
-			puts "setting $crt_var to top"
-			eval {uplevel {set $crt_var [uplevel #0 {set $crt_var}]}}
+			set tl_var [uplevel #0 "set $crt_var"]
+			display_message debug "<10> Setting $crt_var to $tl_var"
+			set cmd [list uplevel [list set $crt_var $tl_var]]
+			eval $cmd
 		}
 	}
+	::octopus::append_cascading_variables
 }
 # END check_set_common_vars
 ################################################################################
