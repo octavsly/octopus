@@ -883,14 +883,14 @@ proc ::octopusRC::write args {
 			set modes ""
 			foreach iii [find / -mode *] {
 				#lappend modes [file tail $iii]
-				report power -verbose -mode $iii > ${_REPORTS_PATH}/${DESIGN}_report_power_${iii}_${date}.rpt
+				report power -verbose -power_mode [file tail $iii] > ${_REPORTS_PATH}/${DESIGN}_report_power_${iii}_${date}.rpt
 			}
 		}
 		if { "$report_timing" == "true" } {
 			set modes ""
 			foreach iii [find / -mode *] {
 				#lappend modes [file tail $iii]
-				report timing -verbose -mode $iii > ${_REPORTS_PATH}/${DESIGN}_report_timing_${iii}_${date}.rpt
+				report timing -verbose -mode [file tail $iii] > ${_REPORTS_PATH}/${DESIGN}_report_timing_${iii}_${date}.rpt
 			}
 		}
 	}
