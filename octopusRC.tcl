@@ -55,6 +55,7 @@ namespace eval ::octopusRC {
 	#	normal: to be defined
 	#	slow: to be defined
 	variable run_speed "fast"
+	variable previous_stage ""
 }
 
 
@@ -795,32 +796,60 @@ proc ::octopusRC::generate_list_of_clock_inverters_for_dft_shell args {
 # design
 proc ::octopusRC::write args {
 
-	global previous-state
 	::octopusRC::check_set_common_vars
 
-	set var_array(10,current-state)		[list "--current-state" "<none>" "string" "1" "1" "" "String specifying the design state. Can be anything but recommended values are rtl, syn, scn. It is used in file names." ]
-	set var_array(20,netlist-path)		[list "--netlist-path" "<none>" "string" "1" "1" "" "Path were the netlist is written to." ]
+	set var_array(10,stage)			[list "--stage" "<none>" "string" "1" "1" "rtl elb gen mapped mapped_scn syn inc_scn scn" "String specifying the design stage. It is used in file names." ]
+	set var_array(20,netlist-path)		[list "--netlist-path" "${_NETLIST_PATH}" "string" "1" "1" "" "Path were the netlist is written to." ]
 	set var_array(30,no-netlist)		[list "--no-netlist" "false" "boolean" "" "" "" "Prevents writing the design netlist" ]
 	set var_array(40,no-lec)		[list "--no-lec" "false" "boolean" "" "" "" "Prevents writing out the lec do files" ]
 	set var_array(50,no-database)		[list "--no-database" "false" "boolean" "" "" "" "Prevents writing the design database" ]
-	set var_array(60,change-names)		[list "--change-names" "false" "boolean" "" "" "" "Allow only \"characters\", \"_\" and \" \[ \]\"." ]
-	set var_array(70,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
+	set var_array(60,no-reports)		[list "--no-reports" "false" "boolean" "" "" "" "Prevents writing any reports" ]
+	set var_array(70,change-names)		[list "--change-names" "false" "boolean" "" "" "" "Allow only \"characters\", \"_\" and \"\[ \]\". Only if a netlist is written out." ]
+	set var_array(80,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
+	set var_array(90,_REPORTS_PATH)		[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
 	extract_check_options_data
-	::octopus::abort_on error --return --display-help
 
-	if { ! [info exists previous-state] } {
-		set previous-state "rtl"
-		set gdc ""
-	} else {
-		set gdc "-golden_design ${netlist-path}/${DESIGN}_netlist_${previous-state}.v"
+	set  help_head {
+		::octopus::display_message none "Write netlists, databases, lec, reports"
 	}
 
+	::octopus::abort_on error --return --display-help
+
+	set gdc "-golden_design ${netlist-path}/${DESIGN}_netlist_${::octopusRC::previous_stage}.v"
+	set report_power "false"
+	set report_timing "false"
+	switch -- $stage {
+		rtl {
+			display_message fixme "Reports for RTL still to be defined"
+			set gdc ""
+		}
+		gen {
+			display_message fixme "gen needs some love"
+		}
+		mapped {
+			display_message fixme "mapped needs some love"
+		}
+		mapped_scn {
+			display_message fixme "mapped_scn needs some love"
+		}
+		syn {
+			display_message fixme "Reports for SYN stage still to be defined"
+		}
+		inc_scn {
+			display_message fixme "inc_scn needs some love"
+		}
+		scn {
+			set report_power "true"
+			set report_timing "true"
+		}
+	}
+
+	# Netlist generation
 	if { "${no-netlist}" == "false" } {
-		set ntlst ${netlist-path}/${DESIGN}_netlist_${current-state}.v
+		set ntlst ${netlist-path}/${DESIGN}_netlist_${stage}.v
 		::octopus::display_message debug "<5> Writing netlist: $ntlst "
 		if { "${change-names}" == "true" } {
 			::octopus::display_message debug "<5> Changing netlist names"
-			set_attribute preserve 
 			set unpreserve [concat gt_ lt_ add_ geq_ leq_ abs_ csa_ sub_]
 
 			foreach item $unpreserve {
@@ -828,20 +857,45 @@ proc ::octopusRC::write args {
 				if { [llength $gt] > 0 } { set_attribute preserve false $gt}
 			}
 			change_names -allowed ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_\[\]
+			change_names -restricted ":" -replace_str "_"  -subdesign -force ; # getting rid of : in csa_blocks
 		}
 		write_hdl >  $ntlst
 	}
+
+	# LEC scripts generation
 	if { "${no-lec}" == "false" && "$::octopusRC::run_speed" != "fast"} {
-		set lecdo "generated/${DESIGN}_do_lec_${previous-state}2${current-state}.cmd"
+		set lecdo "generated/${DESIGN}_do_lec_${::octopusRC::previous_stage}2${stage}.cmd"
 		::octopus::display_message debug "<5> Writing lec do file : $lecdo "
 		eval ::write_do_lec -hier $gdc -revised_design ${ntlst} > $lecdo
 	}
+
+	# Database writing
 	if { "${no-database}" == "false" && "$::octopusRC::run_speed" != "fast"} {
 		shell mkdir -p db
-		::write_db ${DESIGN} -all_root_attributes -to_file db/${DESIGN}_${current-state}.db
+		::write_db ${DESIGN} -all_root_attributes -to_file db/${DESIGN}_${stage}.db
 	}
 
-	set previous-state ${current-state}
+	# Reports/check design/etc.
+	if { "${no-reports}" == "false" && "$::octopusRC::run_speed" != "fast"} {
+		set date [exec date +%s]
+		::check_design -all > $_REPORTS_PATH/${DESIGN}_check_design_${date}.rpt
+		if { "$report_power" == "true" } {
+			set modes ""
+			foreach iii [find / -mode *] {
+				#lappend modes [file tail $iii]
+				report power -verbose -mode $iii > ${_REPORTS_PATH}/${DESIGN}_report_power_${iii}_${date}.rpt
+			}
+		}
+		if { "$report_timing" == "true" } {
+			set modes ""
+			foreach iii [find / -mode *] {
+				#lappend modes [file tail $iii]
+				report timing -verbose -mode $iii > ${_REPORTS_PATH}/${DESIGN}_report_timing_${iii}_${date}.rpt
+			}
+		}
+	}
+
+	set ::octopusRC::previous_stage ${stage}
 }
 # END
 ################################################################################
@@ -865,12 +919,8 @@ proc ::octopusRC::elaborate args {
 	puts "Runtime & Memory after 'read_hdl'"
 	timestat Elaboration
 
-	if { "$::octopusRC::run_speed" != "fast"} {
-		set date [exec date +%s]
-		check_design -all ${DESIGN} > ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.rpt
-		report ple > ${_REPORTS_PATH}/${DESIGN}_report_ple.rpt
-	}
-}
+	::octopusRC::write --stage elb --no-netlist --no-lec 
+
 # END
 ################################################################################
 
@@ -894,11 +944,19 @@ proc ::octopusRC::read_cpf args {
 
 	::read_cpf $cpf
 
+	::octopus::display_message warning "Rumours say that displaying \$::dc::sdc_failed_commands might be wrong"
+	puts $::dc::sdc_failed_commands
+
+	set design_modes [ find / -vname -mode * ]
+	foreach current_design_mode ${design_modes} {
+		report timing -lint -mode [file tail $current_design_mode] >  ${_REPORTS_PATH}/${DESIGN}_report_timing_lint_${current_design_mode}.rpt
+	}
+
 	if { "$::octopusRC::run_speed" != "fast"} {
 		set date [exec date +%s]
 		check_library 		> ${_REPORTS_PATH}/${DESIGN}_check_library_${date}.rpt
 		check_cpf -detail 	> ${_REPORTS_PATH}/${DESIGN}_check_cpf_${date}.rpt
-		check_design -all 	> ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.chk
+		check_design -all 	> ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.rpt
 	}
 }
 # END
@@ -941,22 +999,20 @@ proc ::octopusRC::synthesize args {
 			::synthesize -to_generic -eff $effort_generic
 			puts "Runtime & Memory after synthesize to generic"
 			timestat GENERIC
-			::octopusRC::write --current-state gen --netlist-path ${netlist-path}
+			::octopusRC::write --stage gen --netlist-path ${netlist-path}
 		}
 		to_mapped {
 			::synthesize -to_mapped -eff $effort_mapped -no_incr -auto_identify_shift_register
 			puts "Runtime & Memory after synthesize to mapped"
 			timestat MAPPED
-			::octopusRC::write --current-state mapped --netlist-path ${netlist-path}
-			set date [exec date +%s]
-			::check_design -all > $_REPORTS_PATH/${DESIGN}_check_design_${date}.chk
+			::octopusRC::write --stage mapped --netlist-path ${netlist-path}
 		}
 		to_mapped_inc {
 			::synthesize -to_mapped -eff $effort_incremental -incr
 			report summary
 			puts "Runtime & Memory after incremental synthesis"
 			timestat INCREMENTAL
-			::octopusRC::write --current-state inc_scn --netlist-path ${netlist-path}
+			::octopusRC::write --stage inc_scn --netlist-path ${netlist-path}
 		}
 	}
 }
@@ -1147,7 +1203,7 @@ proc ::octopusRC::delete_unloaded_undriven args {
 # the top-level values.
 proc ::octopusRC::check_set_common_vars args {
 
-	foreach crt_var "DESIGN _REPORTS_PATH" {
+	foreach crt_var "DESIGN _REPORTS_PATH _NETLIST_PATH" {
 		set cmd [list uplevel #0 [list catch [list set $crt_var]]]
 
 		if { [eval $cmd ] } {
