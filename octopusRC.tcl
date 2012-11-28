@@ -920,7 +920,7 @@ proc ::octopusRC::elaborate args {
 	timestat Elaboration
 
 	::octopusRC::write --stage elb --no-netlist --no-lec 
-
+}
 # END
 ################################################################################
 
