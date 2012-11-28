@@ -1025,7 +1025,6 @@ proc ::octopusRC::synthesize args {
 # procedure used to set_case_analysis based on the test data files of the TCB's'
 proc ::octopusRC::set_case_analysis args {
 
-	::octopus::display_message warning "Entering poorly tested procedure!!!"
 	::octopusRC::check_set_common_vars
 
 	set var_array(10,tcb-td-file)		[list "--tcb-td-file" "<none>" "string" "1" "infinity" "" "TCB test data file(s)" ]
