@@ -972,7 +972,7 @@ proc ::octopusRC::synthesize args {
 	::octopusRC::check_set_common_vars
 
 	set var_array(10,type)		[list "--type" "<none>" "string" "1" "1" "to_generic to_mapped to_mapped_incremental" "Specify to synthesis type" ]
-	set var_array(20,netlist-path)	[list "--netlist-path" "<none>" "string" "1" "1" "" "Path were the netlist is written to." ]
+	set var_array(20,netlist-path)	[list "--netlist-path" "${_NETLIST_PATH}" "string" "1" "1" "" "Path were the netlist is written to." ]
 	set var_array(30,DESIGN)	[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
 	set var_array(40,_REPORTS_PATH)	[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
 	extract_check_options_data
