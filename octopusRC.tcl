@@ -947,8 +947,7 @@ proc ::octopusRC::read_cpf args {
 	::octopus::display_message warning "Rumours say that displaying \$::dc::sdc_failed_commands might be wrong"
 	puts $::dc::sdc_failed_commands
 
-	set design_modes [ find / -vname -mode * ]
-	foreach current_design_mode ${design_modes} {
+	foreach current_design_mode [ find / -vname -mode * ] {
 		report timing -lint -mode [file tail $current_design_mode] >  ${_REPORTS_PATH}/${DESIGN}_report_timing_lint_${current_design_mode}.rpt
 	}
 
