@@ -1235,3 +1235,119 @@ proc ::octopusRC::clean_reports args {
 }
 # END check_set_common_vars
 ################################################################################
+
+
+################################################################################
+# BEGIN Find CCB output clock driver
+proc ::octopusRC::output_driver args {
+
+	global env
+
+	set var_array(10,modules)	[list "--modules" "<none>" "string" "1" "infinity" "" "List of module(s) in the design." ]
+	set var_array(20,pins)		[list "--pins" "<none>" "string" "1" "1" "" "The output port(s). Will be used to find the driver." ]
+	extract_check_options_data
+	set  help_head {
+		::octopus::display_message none "Retruns the list of drivers of the ports specified."
+	}
+
+	::octopus::abort_on error --return --display-help
+
+	set lod ""
+	foreach iii ${modules} {
+		if { [catch {set all_inst [get_attribute instances $iii]}]} {
+			display_message warning "No instantiation of $iii"
+		} else {
+			foreach jjj $all_inst {
+				foreach pin $pins {
+					if { [llength [ls ${jjj}/pins_out/${pin} > /dev/null ] ] == 1 } {
+						display_message error "${jjj}/pins_out/${pin} not found"
+					} else {
+						lappend lod [vname [fanin ${jjj}/pins_out/${pin} -max_pin_depth 1]]
+					}
+				}
+			}
+		}
+	}
+	::octopus::append_cascading_variables
+	return $lod
+}
+# END
+################################################################################
+
+
+################################################################################
+# BEGIN reprot timing between arbitrary ports in the design
+proc ::octopusRC::report_timing args {
+
+	set var_array(10,from)		[list "--from" "" "string" "1" "infinity" "" "Reports timing from any port in the design" ]
+	set var_array(20,to)		[list "--to" "" "string" "1" "infinity" "" "Report timing to any port in the design." ]
+	set var_array(30,redirect) 	[list ">" "stdout" "string" "1" "1" "" "Redirects the output to a file" ]
+	extract_check_options_data
+	set  help_head {
+		::octopus::display_message none "Extracts the port name of the clock gate inside the CCB's"
+	}
+
+	if { "$from" == "" && "$to" == "" } {
+		display_message error "At least -from or -to needs to be specified"
+	}
+
+	set redirect_cmd ""
+	if { "$redirect" != "stdout" } {
+		set redirect_cmd ">> $redirect"
+		file delete $redirect
+	} 
+
+	::octopus::abort_on error --return --display-help
+	
+	display_message debug "<10> report timing"
+	foreach jjj "from to" {
+		set ${jjj}_fil ""
+		set ${jjj}_cmd ""
+		if { [set $jjj] != "" } {
+			foreach iii [set $jjj] {
+				set fo [fanout -endpoints [set $jjj] ]
+				if { $fo == 1 } {
+					display_message error "No fanout found for $iii" 
+				} else {
+					set ${jjj}_fil [concat [set ${jjj}_fil] $fo ]
+				}
+			}
+			set ${jjj}_fil [filter_valid_objects $jjj [set ${jjj}_fil]]
+			set ${jjj}_cmd "-${jjj} [set ${jjj}_fil]"
+			display_message debug "<10> $jjj $from"
+		} 	
+	}
+
+
+	eval ::report timing $from_cmd $to_cmd $redirect_cmd
+
+	::octopus::append_cascading_variables
+}
+
+proc filter_valid_objects {direction objects} {
+
+	set cmd "::report timing -${direction} $objects > /dev/null"
+	if { [eval $cmd] == 1 } {
+		# failed command 
+		if { [llength $objects] > 1 } {
+			# Try lower half of the objects 
+			set new_objects_low [ filter_valid_objects $direction [lrange $objects 0 [expr int([llength $objects]/2) - 1 ]]]
+			if {  $new_objects_low == "" } {
+				# we have found the culprit. Exclude this from list of objects
+				set new_objects_low ""
+			} 
+			# Try the other half of the objects
+			set new_objects_high [ filter_valid_objects $direction [lrange $objects [expr int([llength $objects]/2)] end]]
+			if { $new_objects_high ==  "" } {
+				set new_objects_high ""
+			}
+			eval return $new_objects_low $new_objects_high
+		}
+	} else {
+		# Return list of valid 
+		return $objects
+	}
+
+}
+# END
+################################################################################
