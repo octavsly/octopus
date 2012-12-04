@@ -1091,7 +1091,11 @@ proc ::octopusRC::set_case_analysis args {
 			puts $fileIDsdc "################################################################################"
 			puts $fileIDsdc "# 	TCB test data file: $crt_file"
 			puts $fileIDsdc "# 	TCB mode: $mode"
+			puts $fileIDsdc "# 	TCB skipped signals: ${skip-signal} "
 			puts $fileIDsdc ""
+			if { "$ports" == "" } {
+				display_message error "Mode $mode not found in $crt_file"
+			}
 			foreach cpv $ports {
 				set crt_port 	[lindex $cpv 0]
 				set crt_value 	[lindex $cpv 1]
@@ -1108,6 +1112,8 @@ proc ::octopusRC::set_case_analysis args {
 					} else {
 						::octopus::display_message error "More than one TCB instantiation for $cell module has been found. Don't know what to td :-("
 					}
+				} else {
+					puts $fileIDsdc "Skipping user requested port: $crt_port"
 				}
 			}
 			puts $fileIDsdc "################################################################################"
