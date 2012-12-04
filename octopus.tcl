@@ -178,11 +178,17 @@ proc ::octopus::abort_on args {
 
 	set var_array(10,type)		[list "<orphaned>" "<none>" "string" "1" "infinity" "error warning info fixme tip workaround debug" "Type of messages the calling procedure will abort/return"]
 	set var_array(20,return)	[list "--return" "false" "boolean" "" "" "" "Return instead of exit"]
-	set var_array(25,display-help)	[list "--display-help" "false" "boolean" "" "" "" "Display help message of the calling procedure"]
-	set var_array(30,messages)	[list "--messages" "false" "boolean" "" "" "" "Display the trigger message"]
-	set var_array(40,no-cascading)	[list "--no-cascading" "false" "boolean" "" "" "" "Will not append the mesage list to higher level"]
+	set var_array(30,suspend)	[list "--suspend" "false" "boolean" "" "" "" "Suspend. Useful, and available, only in RTL Compiler environment."]
+	set var_array(40,display-help)	[list "--display-help" "false" "boolean" "" "" "" "Display help message of the calling procedure"]
+	set var_array(50,messages)	[list "--messages" "false" "boolean" "" "" "" "Display the trigger message"]
+	set var_array(60,no-cascading)	[list "--no-cascading" "false" "boolean" "" "" "" "Will not append the mesage list to higher level"]
 
 	::octopus::extract_check_options_data
+
+	if { "$suspend" == "true" && "[uplevel #0 [file tail $argv0] ]" != "rc" } {
+		display_message error "Suspend not available in other environments than RTL Compiler"
+		exit 1
+	}
 
 	foreach crt_type $type {
 		if { [uplevel "info exists execution_trace(${crt_type}s_list)" ] } {
@@ -193,8 +199,10 @@ proc ::octopus::abort_on args {
 			if { "${display-help}" == "true" } {
 				catch { uplevel ::octopus::display_help}
 			}
-
-			if { "${return}" == "true" } {
+			
+			if { "$suspend" == "true" && "[uplevel #0 [file tail $argv0] ]" == "rc" } {
+				suspend
+			} elseif { "${return}" == "true" } {
 				if { "${no-cascading}" == "false" } {
 					# This procedure messages exported one level higher
 					octopus::append_cascading_variables
