@@ -185,7 +185,7 @@ proc ::octopus::abort_on args {
 
 	::octopus::extract_check_options_data
 
-	if { "$suspend" == "true" && "[uplevel #0 [file tail $argv0] ]" != "rc" } {
+	if { "$suspend" == "true" && "[uplevel #0 {file tail $argv0} ]" != "rc" } {
 		display_message error "Suspend not available in other environments than RTL Compiler"
 		exit 1
 	}
@@ -200,7 +200,7 @@ proc ::octopus::abort_on args {
 				catch { uplevel ::octopus::display_help}
 			}
 			
-			if { "$suspend" == "true" && "[uplevel #0 {file tail $argv0} ]" == "rc" } {
+			if { "$suspend" == "true" } {
 				suspend
 			} elseif { "${return}" == "true" } {
 				if { "${no-cascading}" == "false" } {
