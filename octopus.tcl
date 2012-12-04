@@ -200,7 +200,7 @@ proc ::octopus::abort_on args {
 				catch { uplevel ::octopus::display_help}
 			}
 			
-			if { "$suspend" == "true" && "[uplevel #0 [file tail $argv0] ]" == "rc" } {
+			if { "$suspend" == "true" && "[uplevel #0 {file tail $argv0} ]" == "rc" } {
 				suspend
 			} elseif { "${return}" == "true" } {
 				if { "${no-cascading}" == "false" } {
