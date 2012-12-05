@@ -1113,7 +1113,7 @@ proc ::octopusRC::set_case_analysis args {
 						::octopus::display_message error "More than one TCB instantiation for $cell module has been found. Don't know what to td :-("
 					}
 				} else {
-					puts $fileIDsdc "Skipping user requested port: $crt_port"
+					puts $fileIDsdc "# SKIPPING user requested port: $crt_port"
 				}
 			}
 			puts $fileIDsdc "################################################################################"
