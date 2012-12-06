@@ -703,7 +703,7 @@ proc ::octopusRC::define_dft_test_signals args {
 						::octopus::display_message info "User requested to skip defining a test value on $crt_sgn"
 					}
 					lappend all_processed_signals $crt_sgn
-					define_dft test_mode -active $active $ssc $crt_sgn
+					eval ::define_dft test_mode -active $active $ssc $crt_sgn
 				}
 			}
 		}
