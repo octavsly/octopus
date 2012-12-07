@@ -1324,7 +1324,9 @@ proc ::octopusRC::report_timing args {
 		} 	
 	}
 
-
+	eval echo "from: $from" $redirect_cmd
+	eval echo "to: $to" $redirect_cmd
+	eval echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" $redirect_cmd
 	eval ::report timing $from_cmd $to_cmd $redirect_cmd
 
 	::octopus::append_cascading_variables
