@@ -1001,7 +1001,7 @@ proc ::octopusRC::synthesize args {
 			::octopusRC::write --stage gen --netlist-path ${netlist-path}
 		}
 		to_mapped {
-			::synthesize -to_mapped -eff $effort_mapped -no_incr -auto_identify_shift_register
+			::synthesize -to_mapped -eff $effort_mapped -no_incr -auto_identify_shift_register -shift_register_max_length 50
 			puts "Runtime & Memory after synthesize to mapped"
 			timestat MAPPED
 			::octopusRC::write --stage mapped --netlist-path ${netlist-path}
