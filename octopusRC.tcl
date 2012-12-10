@@ -1115,7 +1115,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 								} else {
 									# port not in the list specified by the user. Are we allowed to have false-paths?
 									if { "${no-false-paths}" == "false" } {
-										puts $fileIDsdc "    set_false_path -from $full_path_fanin"
+										puts $fileIDsdc "    set_false_path -through $full_path_fanin"
 									} else {
 										puts $fileIDsdc "# False path disabled by user => SKIPPING port: $crt_port"
 									}
