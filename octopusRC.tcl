@@ -1028,7 +1028,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 
 	set var_array(10,tcb-td-file)		[list "--tcb-td-file" "<none>" "string" "1" "infinity" "" "TCB test data file(s)" ]
 	set var_array(20,mode)			[list "--mode" "<none>" "string" "1" "1" "" "TCB mode for which constant values are extracted" ]
-	set var_array(30,exclude-ports)		[list "--exclude-ports" "" "string" "1" "infinity" "" "Skip the specified TCB port(s)" ]
+	set var_array(30,exclude-ports)		[list "--exclude-ports" "" "string" "1" "infinity" "" "Skip the specified TCB port(s) completely." ]
 	set var_array(35,ports)			[list "--ports" "" "string" "1" "infinity" "" "Only this ports are considered. For the rest a false path constraint is added." ]
 	set var_array(37,no-false-paths)	[list "--no-false-paths" "false" "boolean" "" "" "" "No false paths are generated for the unconstrained TCB signals" ]
 	set var_array(40,constraint-file)	[list "--constraint-file" "<none>" "string" "1" "1" "" "The name of the file where the constraints are written into" ]
@@ -1052,7 +1052,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 		return 1
 	}
 	if { "$append" == "true" } {
-		puts $fileIDsdc "# Appended by ::octopusRC::set_case_analysis procedure"
+		puts $fileIDsdc "# Appended by ::octopusRC::constraints_from_tcbs procedure"
 	} else {
 		puts $fileIDsdc "# File created by ::octopusRC::set_case_analysis procedure"
 	}
@@ -1062,7 +1062,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 	# parse one file at a time
 	foreach crt_file ${tcb-td-file} {
 		puts $fileIDsdc ""
-		set ports ""
+		set all_ports ""
 		if { [catch {set fileIDtcb [open $crt_file {RDONLY} ]} ] } {
 			::octopus::display_message error "Cannot open $crt_file file for reading."
 		} else {
@@ -1082,7 +1082,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 					foreach cpv [split $line ";"] {
 						if { [ regexp -nocase {[\s]*([^\s]+)[\s]*=[\s]*\[([L|H])\]} $cpv match port value] } {
 							if { "$value" == "H" } { set value_int 1 } else { set value_int 0 }
-							lappend ports [list $port $value_int]
+							lappend all_ports [list $port $value_int]
 							}
 						}
 					# found our mode so no need to continue parsing the file
@@ -1096,14 +1096,13 @@ proc ::octopusRC::constraints_from_tcbs args {
 			puts $fileIDsdc "# 	TCB excluded ports: ${exclude-ports} "
 			puts $fileIDsdc "# 	TCB only ports: ${ports} "
 			puts $fileIDsdc ""
-			if { "$ports" == "" } {
+			if { "$all_ports" == "" } {
 				display_message error "Mode $mode not found in $crt_file"
 			}
-			foreach cpv $ports {
+			foreach cpv $all_ports {
 				set crt_port 	[lindex $cpv 0]
 				set crt_value 	[lindex $cpv 1]
-				if {! [string match "* $crt_port *" " ${exclude-ports} "] } {
-					if { [string match "* $crt_port *" " ${ports} "] || ${ports} == "" } {
+				if { [lsearch -exact ${exclude-ports} $crt_port ] == -1 } {
 						set instance_path [get_attribute instances [find /des* -subdes $cell ]]
 						if { [llength $instance_path] <=1 } {
 							set full_path_fanin [vname [fanin -max_pin_depth 1 ${instance_path}/${crt_port}]]
@@ -1111,20 +1110,21 @@ proc ::octopusRC::constraints_from_tcbs args {
 								::octopus::display_message error "Could not find ${instance_path}/${crt_port} in $DESIGN"
 							} else {
 								puts $fileIDsdc "#Derived from: ${crt_port}"
-								puts $fileIDsdc "set_case_analysis $crt_value $full_path_fanin"
+								if { [lsearch -exact ${ports}  $crt_port] != -1 || "$ports" == "" } {
+									puts $fileIDsdc "set_case_analysis $crt_value $full_path_fanin"
+								} else {
+									# port not in the list specified by the user. Are we allowed to have false-paths?
+									if { "${no-false-paths}" == "false" } {
+										puts $fileIDsdc "    set_false_path -from $full_path_fanin"
+									} else {
+										puts $fileIDsdc "# False path disabled by user => SKIPPING port: $crt_port"
+									}
+								}
 							}
 						} else {
 							::octopus::display_message error "More than one TCB instantiation for $cell module has been found. Don't know what to td :-("
 						}
-					} else {
-						# port not in the list specified by the user. Are we allowed to have false-paths?
-						if { "${no-false-paths}" == "false" } {
-							puts $fileIDsdc "#Derived from: ${crt_port}"
-							puts $fileIDsdc "set_false_path -from $full_path_fanin"
-						} else {
-							puts $fileIDsdc "# False path disbaled by user => SKIPPING port: $crt_port"
-						}
-					}
+
 				} else {
 					puts $fileIDsdc "# SKIPPING user requested port: $crt_port"
 				}
@@ -1249,7 +1249,7 @@ proc ::octopusRC::clean_reports args {
 	set var_array(30,_REPORTS_PATH)	[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
 	extract_check_options_data
 
-	eval file delete -force [glob -nocomplain $_REPORTS_PATH/*]
+	catch { eval file delete -force [glob -nocomplain $_REPORTS_PATH/*]}
 
 }
 # END check_set_common_vars
