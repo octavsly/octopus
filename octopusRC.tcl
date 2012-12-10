@@ -1020,15 +1020,17 @@ proc ::octopusRC::synthesize args {
 
 
 ################################################################################
-# BEGIN set_case_analysis
-# procedure used to set_case_analysis based on the test data files of the TCB's'
-proc ::octopusRC::set_case_analysis args {
+# BEGIN constraints_from_tcbs
+# procedure used to constraints_from_tcbs based on the test data files of the TCB's'
+proc ::octopusRC::constraints_from_tcbs args {
 
 	::octopusRC::check_set_common_vars
 
 	set var_array(10,tcb-td-file)		[list "--tcb-td-file" "<none>" "string" "1" "infinity" "" "TCB test data file(s)" ]
 	set var_array(20,mode)			[list "--mode" "<none>" "string" "1" "1" "" "TCB mode for which constant values are extracted" ]
-	set var_array(30,skip-signal)		[list "--skip-signal" "" "string" "1" "infinity" "" "Skip the TCB signal(s)" ]
+	set var_array(30,exclude-ports)		[list "--exclude-ports" "" "string" "1" "infinity" "" "Skip the specified TCB port(s)" ]
+	set var_array(35,ports)			[list "--ports" "" "string" "1" "infinity" "" "Only this ports are considered. For the rest a false path constraint is added." ]
+	set var_array(37,no-false-paths)	[list "--no-false-paths" "false" "boolean" "" "" "" "No false paths are generated for the unconstrained TCB signals" ]
 	set var_array(40,constraint-file)	[list "--constraint-file" "<none>" "string" "1" "1" "" "The name of the file where the constraints are written into" ]
 	set var_array(50,append)		[list "--append" "false" "boolean" "" "" "" "Appends into <constraint-file> instead of truncating it" ]
 	set var_array(60,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
@@ -1091,7 +1093,7 @@ proc ::octopusRC::set_case_analysis args {
 			puts $fileIDsdc "################################################################################"
 			puts $fileIDsdc "# 	TCB test data file: $crt_file"
 			puts $fileIDsdc "# 	TCB mode: $mode"
-			puts $fileIDsdc "# 	TCB skipped signals: ${skip-signal} "
+			puts $fileIDsdc "# 	TCB skipped signals: ${exclude-ports} "
 			puts $fileIDsdc ""
 			if { "$ports" == "" } {
 				display_message error "Mode $mode not found in $crt_file"
@@ -1099,18 +1101,28 @@ proc ::octopusRC::set_case_analysis args {
 			foreach cpv $ports {
 				set crt_port 	[lindex $cpv 0]
 				set crt_value 	[lindex $cpv 1]
-				if {! [string match "* $crt_port *" " ${skip-signal} "] } {
-					set instance_path [get_attribute instances [find /des* -subdes $cell ]]
-					if { [llength $instance_path] <=1 } {
-						set full_path_fanin [vname [fanin -max_pin_depth 1 ${instance_path}/${crt_port}]]
-						if { $full_path_fanin ==  1 } {
-							::octopus::display_message error "Could not find ${instance_path}/${crt_port} in $DESIGN"
+				if {! [string match "* $crt_port *" " ${exclude-ports} "] } {
+					if { [string match "* $crt_port *" " ${ports} "] || ${ports} == "" } {
+						set instance_path [get_attribute instances [find /des* -subdes $cell ]]
+						if { [llength $instance_path] <=1 } {
+							set full_path_fanin [vname [fanin -max_pin_depth 1 ${instance_path}/${crt_port}]]
+							if { $full_path_fanin ==  1 } {
+								::octopus::display_message error "Could not find ${instance_path}/${crt_port} in $DESIGN"
+							} else {
+								puts $fileIDsdc "#Derived from: ${crt_port}"
+								puts $fileIDsdc "set_case_analysis $crt_value $full_path_fanin"
+							}
 						} else {
-							puts $fileIDsdc "#Derived from: ${crt_port}"
-							puts $fileIDsdc "set_case_analysis $crt_value $full_path_fanin"
+							::octopus::display_message error "More than one TCB instantiation for $cell module has been found. Don't know what to td :-("
 						}
 					} else {
-						::octopus::display_message error "More than one TCB instantiation for $cell module has been found. Don't know what to td :-("
+						# port not in the list specified by the user. Are we allowed to have false-paths?
+						if { "${no-false-paths}" == "false" } {
+							puts $fileIDsdc "#Derived from: ${crt_port}"
+							puts $fileIDsdc "set_false_path -from $full_path_fanin"
+						} else {
+							puts $fileIDsdc "# False path disbaled by user => SKIPPING port: $crt_port"
+						}
 					}
 				} else {
 					puts $fileIDsdc "# SKIPPING user requested port: $crt_port"
