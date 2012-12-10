@@ -1093,7 +1093,8 @@ proc ::octopusRC::constraints_from_tcbs args {
 			puts $fileIDsdc "################################################################################"
 			puts $fileIDsdc "# 	TCB test data file: $crt_file"
 			puts $fileIDsdc "# 	TCB mode: $mode"
-			puts $fileIDsdc "# 	TCB skipped signals: ${exclude-ports} "
+			puts $fileIDsdc "# 	TCB excluded ports: ${exclude-ports} "
+			puts $fileIDsdc "# 	TCB only ports: ${ports} "
 			puts $fileIDsdc ""
 			if { "$ports" == "" } {
 				display_message error "Mode $mode not found in $crt_file"
