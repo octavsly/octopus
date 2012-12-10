@@ -1038,7 +1038,20 @@ proc ::octopusRC::constraints_from_tcbs args {
 	set  help_head {
 		::octopus::display_message none "Extracts the TCB values in a specific mode and writes out set_case_analysis statements"
 	}
+
+	set  help_tail {
+		::octopus::display_message none "Note:"
+		::octopus::display_message none "--ports option is compulsory for design maturity higher than bronze, if the design is not in application mode."
+		::octopus::display_message none "        The reason is that you might hide valid timing paths"
+	}
 	::octopus::abort_on error --return --display-help
+
+	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pyrite" && \
+		"[get_attribute octopusRC_design_maturity_level]" != "bronze" && \
+		"$ports" == "" && \
+		"$mode" != "application" } { 
+		display_message error "For [get_attribute octopusRC_design_maturity_level] maturity level the --ports option is compulsory. It is too risky to do synthesis with set_case_analysis on all TCB ports!"
+	}
 
 	if { "${append}" == "false" } {
 		set ta "TRUNC"
@@ -1109,15 +1122,16 @@ proc ::octopusRC::constraints_from_tcbs args {
 							if { $full_path_fanin ==  1 } {
 								::octopus::display_message error "Could not find ${instance_path}/${crt_port} in $DESIGN"
 							} else {
-								puts $fileIDsdc "#Derived from: ${crt_port}"
 								if { [lsearch -exact ${ports}  $crt_port] != -1 || "$ports" == "" } {
+									puts $fileIDsdc "#Derived from: ${crt_port}"
 									puts $fileIDsdc "set_case_analysis $crt_value $full_path_fanin"
 								} else {
 									# port not in the list specified by the user. Are we allowed to have false-paths?
+									puts $fileIDsdc "    # Derived from: ${crt_port} :: $crt_value"
 									if { "${no-false-paths}" == "false" } {
 										puts $fileIDsdc "    set_false_path -through $full_path_fanin"
 									} else {
-										puts $fileIDsdc "# False path disabled by user => SKIPPING port: $crt_port"
+										puts $fileIDsdc "    # False path disabled by user => SKIPPING port: $crt_port"
 									}
 								}
 							}
