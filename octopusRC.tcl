@@ -1102,6 +1102,16 @@ proc ::octopusRC::constraints_from_tcbs args {
 					break
 				}
 			}
+			if { "$all_ports" == "" } {
+				display_message error "Mode $mode not found in $crt_file"
+				continue
+			}
+			if { ! [info exists cell] } {
+				display_message error "Could not find a cell in the test data file $crt_file"
+				continue
+			}
+			display_message debug "<5> Found TCB cell $cell in test data file $crt_file"
+			display_message debug "<20> TCB ports of $cell: $all_ports"
 			# Create set_case_analysis statements
 			puts $fileIDsdc "################################################################################"
 			puts $fileIDsdc "# 	TCB test data file: $crt_file"
@@ -1109,9 +1119,6 @@ proc ::octopusRC::constraints_from_tcbs args {
 			puts $fileIDsdc "# 	TCB excluded ports: ${exclude-ports} "
 			puts $fileIDsdc "# 	TCB only ports: ${ports} "
 			puts $fileIDsdc ""
-			if { "$all_ports" == "" } {
-				display_message error "Mode $mode not found in $crt_file"
-			}
 			foreach cpv $all_ports {
 				set crt_port 	[lindex $cpv 0]
 				set crt_value 	[lindex $cpv 1]
@@ -1123,7 +1130,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 								::octopus::display_message error "Could not find ${instance_path}/${crt_port} in $DESIGN"
 							} else {
 								if { [lsearch -exact ${ports}  $crt_port] != -1 || "$ports" == "" } {
-									puts $fileIDsdc "#Derived from: ${crt_port}"
+									puts $fileIDsdc "#Derived from: ${crt_port} :: $crt_value"
 									puts $fileIDsdc "set_case_analysis $crt_value $full_path_fanin"
 								} else {
 									# port not in the list specified by the user. Are we allowed to have false-paths?
