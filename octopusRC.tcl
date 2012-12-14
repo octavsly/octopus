@@ -1036,7 +1036,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 	set var_array(60,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
 	extract_check_options_data
 	set  help_head {
-		::octopus::display_message none "Extracts the TCB values in a specific mode and writes out set_case_analysis statements"
+		::octopus::display_message none "Extracts the TCB values in a specific mode and writes out constraints"
 	}
 
 	set  help_tail {
@@ -1067,7 +1067,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 	if { "$append" == "true" } {
 		puts $fileIDsdc "# Appended by ::octopusRC::constraints_from_tcbs procedure"
 	} else {
-		puts $fileIDsdc "# File created by ::octopusRC::set_case_analysis procedure"
+		puts $fileIDsdc "# File created by ::octopusRC::$argv0 procedure"
 	}
 	set date_time [exec date]
 	puts $fileIDsdc "# on :: $date_time"
@@ -1112,7 +1112,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 			}
 			display_message debug "<5> Found TCB cell $cell in test data file $crt_file"
 			display_message debug "<15> TCB ports and values of $cell in mode $mode: $all_ports"
-			# Create set_case_analysis statements
+			# Create constraints
 			puts $fileIDsdc "################################################################################"
 			puts $fileIDsdc "# 	TCB test data file: $crt_file"
 			puts $fileIDsdc "# 	TCB mode: $mode"
