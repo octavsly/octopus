@@ -1096,6 +1096,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 						if { [ regexp -nocase {[\s]*([^\s]+)[\s]*=[\s]*\[([L|H])\]} $cpv match port value] } {
 							if { "$value" == "H" } { set value_int 1 } else { set value_int 0 }
 							lappend all_ports [list $port $value_int]
+							lappend all_ports_names $port
 							}
 						}
 					# found our mode so no need to continue parsing the file
@@ -1113,7 +1114,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 			display_message debug "<5> Found TCB cell $cell in test data file $crt_file"
 			display_message debug "<15> TCB ports and values of $cell in mode $mode: $all_ports"
 			foreach aux $ports {
-				if { [lsearch -exact ${all_ports} $aux ] == -1 } { 
+				if { [lsearch -exact ${all_ports_names} $aux ] == -1 } { 
 					display_message warning "$aux port not present in the TCB $cell picked from $crt_file"
 				}
 			}
