@@ -1111,7 +1111,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 				continue
 			}
 			display_message debug "<5> Found TCB cell $cell in test data file $crt_file"
-			display_message debug "<20> TCB ports of $cell: $all_ports"
+			display_message debug "<15> TCB ports and values of $cell in mode $mode: $all_ports"
 			# Create set_case_analysis statements
 			puts $fileIDsdc "################################################################################"
 			puts $fileIDsdc "# 	TCB test data file: $crt_file"
