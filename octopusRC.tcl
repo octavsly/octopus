@@ -1067,7 +1067,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 	if { "$append" == "true" } {
 		puts $fileIDsdc "# Appended by ::octopusRC::constraints_from_tcbs procedure"
 	} else {
-		puts $fileIDsdc "# File created by ::octopusRC::[::octopus::calling_proc -1] procedure"
+		puts $fileIDsdc "# File created by [::octopus::calling_proc -1] procedure"
 	}
 	set date_time [exec date]
 	puts $fileIDsdc "# on :: $date_time"
@@ -1112,6 +1112,11 @@ proc ::octopusRC::constraints_from_tcbs args {
 			}
 			display_message debug "<5> Found TCB cell $cell in test data file $crt_file"
 			display_message debug "<15> TCB ports and values of $cell in mode $mode: $all_ports"
+			foreach aux $ports {
+				if { [lsearch -exact ${all_ports} $aux ] == -1 } { 
+					display_message warning "$aux port not present in the TCB $cell picked from $crt_file"
+				}
+			}
 			# Create constraints
 			puts $fileIDsdc "################################################################################"
 			puts $fileIDsdc "# 	TCB test data file: $crt_file"
