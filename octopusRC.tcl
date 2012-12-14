@@ -1067,7 +1067,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 	if { "$append" == "true" } {
 		puts $fileIDsdc "# Appended by ::octopusRC::constraints_from_tcbs procedure"
 	} else {
-		puts $fileIDsdc "# File created by ::octopusRC::$argv0 procedure"
+		puts $fileIDsdc "# File created by ::octopusRC::[::octopus::calling_proc -1] procedure"
 	}
 	set date_time [exec date]
 	puts $fileIDsdc "# on :: $date_time"
