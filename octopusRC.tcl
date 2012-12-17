@@ -1006,7 +1006,7 @@ proc ::octopusRC::synthesize args {
 			timestat MAPPED
 			::octopusRC::write --stage mapped --netlist-path ${netlist-path}
 		}
-		to_mapped_inc {
+		to_mapped_incremental {
 			::synthesize -to_mapped -eff $effort_incremental -incr
 			report summary
 			puts "Runtime & Memory after incremental synthesis"
