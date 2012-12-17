@@ -890,7 +890,7 @@ proc ::octopusRC::write args {
 			set modes ""
 			foreach iii [find / -mode *] {
 				#lappend modes [file tail $iii]
-				report timing -verbose -mode [file tail $iii] > ${_REPORTS_PATH}/${DESIGN}_report_timing_${iii}_${date}.rpt
+				report timing -mode [file tail $iii] > ${_REPORTS_PATH}/${DESIGN}_report_timing_${iii}_${date}.rpt
 			}
 		}
 	}
@@ -948,7 +948,7 @@ proc ::octopusRC::read_cpf args {
 	puts $::dc::sdc_failed_commands
 
 	foreach current_design_mode [ find / -vname -mode * ] {
-		report timing -lint -mode [file tail $current_design_mode] >  ${_REPORTS_PATH}/${DESIGN}_report_timing_lint_${current_design_mode}.rpt
+		report timing -lint -verbose -mode [file tail $current_design_mode] >  ${_REPORTS_PATH}/${DESIGN}_report_timing_lint_${current_design_mode}.rpt
 	}
 
 	if { "$::octopusRC::run_speed" != "fast"} {
