@@ -416,7 +416,7 @@ proc ::octopusRC::report_attributes args {
 # BEGIN set_attribute_recursive
 proc ::octopusRC::set_attribute_recursive args {
 
-	set var_array(10,attribute)				[list "--attribute" "<none>" "string" "2" "2" "" "Specify the attribute to be applied. Format is attribute <true|false>."]
+	set var_array(10,attribute)				[list "--attribute" "<none>" "string" "2" "2" "" "Specify the attribute to be applied. Format is: attribute <true|false>."]
 	set var_array(30,objects)				[list "--objects" "<none>" "string" "1" "infinity" "" "Specify the objects for which the attributes will beapplied. e.g. instaces/modules/pins/etc."]
 	set var_array(40,direction)				[list "--direction" "down" "string" "1" "1" "up down both" "Specify the direction of recursion. up: all parents will get the attribute, down: all children. both:"]
 
