@@ -587,7 +587,7 @@ proc ::octopusRC::read_dft_abstract_model args {
 			set unresolved_instantiations [filter subdesign "/designs/*/subdesigns/$crt_module" [filter unresolved true [find /designs -inst *] ] ]
 			set instances [concat $library_instantiations $unresolved_instantiations ]
 			foreach crt_instance $instances {
-				::read_dft_abstract_model \
+				eval ::read_dft_abstract_model \
 					-segment_prefix "[file tail ${crt_module}]=[file tail ${crt_instance}]++" \
 					-instance $crt_instance \
 					$assume_connected_shift_enable \
@@ -613,7 +613,7 @@ proc ::octopusRC::read_dft_abstract_model args {
 				}
 				set iii 0
 				foreach crt_instance [get_attribute instances $full_path_crt_module] {
-					::read_dft_abstract_model \
+					eval ::read_dft_abstract_model \
 						-segment_prefix "[file tail ${crt_module}]=[file tail ${crt_instance}]++${iii}" \
 						-instance $crt_instance \
 						$assume_connected_shift_enable \
