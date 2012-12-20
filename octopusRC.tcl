@@ -817,6 +817,7 @@ proc ::octopusRC::write args {
 	::octopus::abort_on error --return --display-help
 
 	set gdc "-golden_design ${netlist-path}/${DESIGN}_netlist_${::octopusRC::previous_stage}.v"
+	set ntlst ${netlist-path}/${DESIGN}_netlist_${stage}.v
 	set report_power "false"
 	set report_timing "false"
 	switch -- $stage {
@@ -889,7 +890,6 @@ proc ::octopusRC::write args {
 
 	# Netlist generation
 	if { "${no-netlist}" == "false" } {
-		set ntlst ${netlist-path}/${DESIGN}_netlist_${stage}.v
 		::octopus::display_message debug "<5> Writing netlist: $ntlst "
 		if { "${change-names}" == "true" } {
 			::octopus::display_message debug "<5> Changing netlist names"
