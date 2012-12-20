@@ -805,6 +805,7 @@ proc ::octopusRC::write args {
 	set var_array(50,no-database)		[list "--no-database" "false" "boolean" "" "" "" "Prevents writing the design database" ]
 	set var_array(60,no-reports)		[list "--no-reports" "false" "boolean" "" "" "" "Prevents writing any reports" ]
 	set var_array(70,change-names)		[list "--change-names" "false" "boolean" "" "" "" "Allow only \"characters\", \"_\" and \"\[ \]\". Only if a netlist is written out." ]
+	set var_array(75,rm-designs)		[list "--rm-designs" "" "string" "1" "infinity" "" "Remove the design before writing out netlist." ]
 	set var_array(80,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
 	set var_array(90,_REPORTS_PATH)		[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
 	extract_check_options_data
@@ -844,24 +845,6 @@ proc ::octopusRC::write args {
 		}
 	}
 
-	# Netlist generation
-	if { "${no-netlist}" == "false" } {
-		set ntlst ${netlist-path}/${DESIGN}_netlist_${stage}.v
-		::octopus::display_message debug "<5> Writing netlist: $ntlst "
-		if { "${change-names}" == "true" } {
-			::octopus::display_message debug "<5> Changing netlist names"
-			set unpreserve [concat gt_ lt_ add_ geq_ leq_ abs_ csa_ sub_]
-
-			foreach item $unpreserve {
-				set gt [find / -subdesign ${item}*] 
-				if { [llength $gt] > 0 } { set_attribute preserve false $gt}
-			}
-			change_names -allowed ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_\[\]
-			change_names -restricted ":" -replace_str "_"  -subdesign -force ; # getting rid of : in csa_blocks
-		}
-		write_hdl >  $ntlst
-	}
-
 	# LEC scripts generation
 	if { "${no-lec}" == "false" && "$::octopusRC::run_speed" != "fast"} {
 		set lecdo "generated/${DESIGN}_do_lec_${::octopusRC::previous_stage}2${stage}.cmd"
@@ -893,6 +876,33 @@ proc ::octopusRC::write args {
 				report timing -mode [file tail $iii] > ${_REPORTS_PATH}/${DESIGN}_report_timing_${iii}_${date}.rpt
 			}
 		}
+	}
+
+	if { "${rm-designs}" != "" } {
+		foreach iii ${rm-designs} {
+			foreach jjj [get_attribute instances [find / -subdes $iii]] {
+				set_attribute preserve false [find $jjj -instance *]
+				rm $jjj
+			}
+		}
+	}
+
+	# Netlist generation
+	if { "${no-netlist}" == "false" } {
+		set ntlst ${netlist-path}/${DESIGN}_netlist_${stage}.v
+		::octopus::display_message debug "<5> Writing netlist: $ntlst "
+		if { "${change-names}" == "true" } {
+			::octopus::display_message debug "<5> Changing netlist names"
+			set unpreserve [concat gt_ lt_ add_ geq_ leq_ abs_ csa_ sub_]
+
+			foreach item $unpreserve {
+				set gt [find / -subdesign ${item}*] 
+				if { [llength $gt] > 0 } { set_attribute preserve false $gt}
+			}
+			change_names -allowed ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_\[\]
+			change_names -restricted ":" -replace_str "_"  -subdesign -force ; # getting rid of : in csa_blocks
+		}
+		write_hdl >  $ntlst
 	}
 
 	set ::octopusRC::previous_stage ${stage}
