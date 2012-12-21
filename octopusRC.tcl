@@ -497,33 +497,40 @@ proc ::octopusRC::define_dft_test_clocks args {
 
 	::octopus::abort_on error --return
 
-	set all_clocks "$all_clocks [find /*/*/modes/*/clock_domains/*/ -clock *]"
+	foreach iii ${timing-modes} {
+		set tiii [file tail $iii]
+		::octopus::display_message debug "<5> Extracting clocks of timing mode $iii"
+		set aux [find /*/*/modes/$tiii/clock_domains/*/ -clock *]
+		::octopus::display_message debug "<15> Clocks found: $aux"
+		set all_clocks "$all_clocks $aux"
+	}
 
 	set all_clock_drivers ""
-	foreach crt_timing_mode ${timing-modes} {
-		foreach crt_clock "$all_clocks" {
-			set clock_name [file tail $crt_clock]
-			if { [catch {set clock_driver [get_attribute non_inverted_sources $crt_clock]} ] } {
-				::octopus::display_message error "Is $crt_clock a clock signal?"
-			}
-        		set aux_clock_driver [string map [list \[ {\[} \] {\]} \\ {\\}] $clock_driver]
-		        if { [ lsearch $all_clock_drivers $aux_clock_driver] >= 0 } {
-				::octopus::display_message debug "<2> There is already a clock defined on $aux_clock_driver"
-                		continue
-		        }
-			if { [string match "* $clock_driver *" " ${skip-clocks} "] > 0 } {
-				::octopus::display_message info "User requested to skip defining a test clock on $clock_driver"
-			}
-	        	lappend all_clock_drivers $clock_driver
+	foreach crt_clock "$all_clocks" {
+		set clock_name [file tail $crt_clock]
+		if { [catch {set clock_driver [get_attribute non_inverted_sources $crt_clock]} ] } {
+			::octopus::display_message error "Is $crt_clock a clock signal?"
+			continue
+		}
+		set aux_clock_driver [string map [list \[ {\[} \] {\]} \\ {\\}] $clock_driver]
+		if { [ lsearch $all_clock_drivers $aux_clock_driver] >= 0 } {
+			::octopus::display_message debug "<2> There is already a clock defined on $aux_clock_driver"
+			continue
+		}
+		if { [string match "* $clock_driver *" " ${skip-clocks} "] > 0 } {
+			::octopus::display_message info "User requested to skip defining a test clock on $clock_driver"
+		} else {
+			lappend all_clock_drivers $clock_driver
 			::octopus::display_message info "Defining a test clock on $clock_driver"
-		        define_dft \
-        	        	test_clock \
-	                	-name $clock_name \
-		                -domain multi_clock_domains_chains \
-		                -controllable \
+			define_dft \
+				test_clock \
+				-name $clock_name \
+				-domain multi_clock_domains_chains \
+				-controllable \
 				$clock_driver
 		}
 	}
+
 	::octopus::display_message info "END Defining test clocks from SDC"
 	::octopus::append_cascading_variables
 }
