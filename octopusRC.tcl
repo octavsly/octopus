@@ -1290,11 +1290,17 @@ proc ::octopusRC::clean_reports args {
 
 	::octopusRC::check_set_common_vars
 
+	set var_array(20,no-save)	[list "--no-save" "false" "boolean" "" "" "" "Do not save the old reports" ]
 	set var_array(30,_REPORTS_PATH)	[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
 	extract_check_options_data
 
-	catch { eval file delete -force [glob -nocomplain $_REPORTS_PATH/*]}
-
+	if { "${no-save}" == "false" } {
+		catch {file delete -force [glob -nocomplain ${_REPORTS_PATH}_previous_run]}
+		catch {file rename $_REPORTS_PATH ${_REPORTS_PATH}_previous_run}
+		catch {file copy -force rc.log ${_REPORTS_PATH}_previous_run/}
+		catch {file copy -force rc.cmd ${_REPORTS_PATH}_previous_run/}
+	}
+	file mkdir ${_REPORTS_PATH}
 }
 # END check_set_common_vars
 ################################################################################
