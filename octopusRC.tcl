@@ -1099,7 +1099,11 @@ proc ::octopusRC::constraints_from_tcbs args {
 	# parse one file at a time
 	foreach crt_file ${tcb-td-file} {
 		puts $fileIDsdc ""
+		if { [info exists cell] }	{ unset cell}
+		if { [info exists effect] }	{ unset effect}
+		if { [info exists tcbmode] }	{ unset tcbmode}
 		set all_ports ""
+		set all_ports_names ""
 		if { [catch {set fileIDtcb [open $crt_file {RDONLY} ]} ] } {
 			::octopus::display_message error "Cannot open $crt_file file for reading."
 		} else {
