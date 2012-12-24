@@ -706,6 +706,13 @@ proc ::octopusRC::define_dft_test_signals args {
 						::octopus::display_message debug "<2> There is already a test_mode defined on $aux_crt_sgn"
 						continue
 					}
+					if { "[get_attribute dft_constant_value $aux_crt_sgn]" != "$active" } {
+						::octopus::display_message warning "RC database contains already a test_mode defined on ${aux_crt_sgn} with a different value; thus, shift value will be preferred instead of capture one"
+						if { "${test-mode}"  == "capture" } {
+							::octopus::display_message debug "<2> Skipping definition of $aux_crt_sgn to $active for test-mode ${test-mode}"
+							continue
+						}
+					}
 					if { [string match "* $crt_sgn *" " ${skip-signals} "] > 0 } {
 						::octopus::display_message info "User requested to skip defining a test value on $crt_sgn"
 					}
