@@ -1,6 +1,6 @@
 #
 #    octopus: package of useful procedures
-#    Copyright (C) 2012 Octavian Petre <octavsly@gmail.com>
+#    Copyright (C) 2012-2013 Octavian Petre <octavsly@gmail.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -677,7 +677,7 @@ proc ::octopus::check_file args {
 		exe {
 			foreach crt_file $file {
 				if { ! [file exists $crt_file ] || ! [file executable $crt_file] } {
-					display_message error "$executable not found/executable. Do you have the right cadenv?"
+					display_message error "$crt_file not found/executable. Do you have the right cadenv?"
 				}
 			}
 			::octopus::abort_on error --return
