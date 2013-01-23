@@ -697,6 +697,8 @@ proc ::octopus::check_file args {
 
 proc ::octopus::parse_file_set args {
 
+	global env
+
 	set var_array(10,file)  	[list "--file" "<none>" "string" "1" "infinity" "" "The sourec files that need to be parsed"]
 	set var_array(20,type)    	[list "--type" "<none>" "string" "1" "1" "utel diehard" "Type of file."]
 	::octopus::extract_check_options_data
