@@ -305,6 +305,7 @@ proc ::octopus::extract_check_options_data { } {
 	upvar args passed_options_proc
 	upvar var_array var_array
 
+	uplevel {global env}
 	catch {set passed_options $passed_options_proc}
 	catch {set passed_options $passed_options_exec}
 
@@ -696,8 +697,6 @@ proc ::octopus::check_file args {
 # Returns a list with the files that pass the check
 
 proc ::octopus::parse_file_set args {
-
-	global env
 
 	set var_array(10,file)  	[list "--file" "<none>" "string" "1" "infinity" "" "The sourec files that need to be parsed"]
 	set var_array(20,type)    	[list "--type" "<none>" "string" "1" "1" "utel diehard" "Type of file."]
