@@ -571,7 +571,7 @@ proc ::octopus::display_help {} {
 
 	upvar var_array var_array
 
-	catch { uplevel eval $help_head }
+	catch { uplevel {eval $help_head} }
 	puts ""
 	puts "Usage:"
 	puts -nonewline "  [file tail [::octopus::calling_proc]] "
@@ -588,7 +588,7 @@ proc ::octopus::display_help {} {
 			set min_nr_arg [lindex $var_array($iii) 3]
 			set max_nr_arg [lindex $var_array($iii) 4]
 			set allowed_vallue [lindex $var_array($iii) 5]
-			set help_text "[string trim [lindex $var_array($iii) 6] {.}]."
+			set help_text "[string trim [lindex $var_array($iii) 6] {. }]."
 			if { "$option" == "<orphaned>" } {
 				set option ""
 			}
@@ -646,7 +646,7 @@ proc ::octopus::display_help {} {
 	incr parse_twice
 	}
 	puts ""
-	catch { uplevel eval $help_tail }
+	catch { uplevel {eval $help_tail} } 
 }
 # END
 ################################################################################
