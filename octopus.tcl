@@ -111,49 +111,49 @@ proc ::octopus::display_message args {
 	}
 	switch -- $type_msg {
 		error {
-			::libterm::rtputs -nonewline "%d%l%#RERROR:%n  "
-			::libterm::rtputs "	$string_msg"
+			::libterm::rtputs -nonewline "%d%l%#RERROR:%n"
+			::libterm::rtputs "      $string_msg"
 			lappend execution_trace(errors_list) $string_msg
 		}
 		warning {
 			::libterm::rtputs -nonewline "%d%#YWARNING:%n"
-			::libterm::rtputs "	$string_msg"
+			::libterm::rtputs "   $string_msg"
 			lappend execution_trace(warnings_list) $string_msg
 		}
 		info {
-			::libterm::rtputs -nonewline "%#GINFO:%n   "
-			::libterm::rtputs "	$string_msg"
+			::libterm::rtputs -nonewline "%#GINFO:%n"
+			::libterm::rtputs "      $string_msg"
 			lappend execution_trace(infos_list) $string_msg
 		}
 		tip {
-			::libterm::rtputs -nonewline "%#MTIP:%n	"
-			::libterm::rtputs "	$string_msg"
+			::libterm::rtputs -nonewline "%#MTIP:%n"
+			::libterm::rtputs "       $string_msg"
 			lappend execution_trace(tips_list) $string_msg
 		}
 		fixme {
 			::libterm::rtputs -nonewline "%r%uFIXME!!%n"
-			::libterm::rtputs "	 $string_msg"
+			::libterm::rtputs "   $string_msg"
 			lappend execution_trace(fixmes_list) $string_msg
 		}
 		workaround {
 			#::libterm::tputs -nonewline "%l%d%g%#MWORKAROUND:%n%n%n%n"
 			::libterm::rtputs -nonewline "%rWORKAROUND:%n"
-			::libterm::rtputs "     $string_msg"
+			::libterm::rtputs "$string_msg"
 			lappend execution_trace(workarounds_list) $string_msg
 		}
 		debug {
 			if {([info exists execution_trace(debug-level)] && $execution_trace(debug-level) >= $dl) } {
 				::libterm::rtputs -nonewline "%w%#KDEBUG:<$dl>%n"
-				::libterm::rtputs "      $string_msg"
+				::libterm::rtputs " $string_msg"
 				lappend execution_trace(debugs_list) $string_msg
 			}
 		}
 		none {
-			::libterm::rtputs "            $string_msg"
+			::libterm::rtputs "           $string_msg"
 		}
 		dev_error {
-			::libterm::rtputs -nonewline "%d%l%#RERROR:%n  "
-			::libterm::rtputs "	<DEVELOPER ERROR:contact $::octopus::authors_email> $string_msg"
+			::libterm::rtputs -nonewline "%d%l%#RERROR:%n"
+			::libterm::rtputs "     <DEVELOPER ERROR:contact $::octopus::authors_email> $string_msg"
 			lappend execution_trace(errors_list) $string_msg
 		}
 		contact {
