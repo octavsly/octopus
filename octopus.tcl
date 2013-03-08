@@ -547,6 +547,7 @@ proc ::octopus::extract_check_options_data { } {
 	if { "${no-colour}" == "true" } {
 		::octopus::set_octopus_color --disable
 	}
+	display_message debug "<2> Exiting [::octopus::calling_proc] -> [::octopus::calling_proc -1]"
 }
 # END
 ################################################################################
@@ -783,6 +784,7 @@ proc ::octopus::append_cascading_variables {} {
 			}
 		}
 	}
+	display_message debug "<2> Exiting [::octopus::calling_proc] -> [::octopus::calling_proc -1]"
 }
 # END
 ################################################################################
