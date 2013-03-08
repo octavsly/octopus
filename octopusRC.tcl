@@ -549,17 +549,30 @@ proc ::octopusRC::define_dft_test_clocks args {
 # This function already exists in cadence, thus is not exported.
 proc ::octopusRC::read_dft_abstract_model args {
 
+	set  help_head {
+		::octopus::display_message warning "OBSOLETE PROCEDURE [::octopus::calling_proc -1]:"
+		::octopus::display_message warning "[::octopus::calling_proc -1] will dissapear in the future since RC 12.1 is natively supporting this feature."
+	}
+	eval $help_head
+
 	set var_array(10,ctl)				[list "--ctl" "<none>" "string" "1" "infinity" "" "Specify the CTL file(s) to be read in. If --module option is used then only one file can be read in" ]
 	set var_array(20,assume-connected-shift-enable)	[list "--assume-connected-shift-enable" "false" "boolean" "" "" "" "Specify this option if the shift enable is already connected for all CTL files read in." ]
 	set var_array(30,module)			[list "--module" "" "string" "1" "1" "" "Specify the module/library cell associated with the ctl file. If missing 'Environment' CTL keyword will be used instead." ]
-	set var_array(40,boundary-opto)			[list "--boundary-opto" "false" "boolean" "" "" "" "By default, boundary optimization is switched off for modules with CTL associated. By specifying this option you switch boundary optimization on" ]
+	set var_array(40,instance)			[list "--instance" "" "string" "1" "1" "" "Specify the instance associated with the ctl file. If missing 'Environment' CTL keyword will be used instead." ]
+	set var_array(50,boundary-opto)			[list "--boundary-opto" "false" "boolean" "" "" "" "By default, boundary optimization is switched off for modules with CTL associated. By specifying this option you switch boundary optimization on" ]
+
+	set  help_tail {
+		::octopus::display_message none "Note:"
+		::octopus::display_message none "--instance option supports only one instance. Thus, the user is strongly encouraged to use native RC commands"
+		::octopus::display_message none "           for defining chains on instances. "
+	}
 
 	extract_check_options_data ; #description of var_array variable is given in this procedures
 
 	::octopus::abort_on error --return --display-help
 
-	if { "$module" != "" && [llength $ctl] > 1 } {
-			::octopus::display_message error "If you specify --module option, then only one CTL file can be specified"
+	if { ("$module" != "" || "$instance" != "" ) && [llength $ctl] > 1 } {
+			::octopus::display_message error "If you specify --module or --instance options, then only one CTL file can be specified. "
 	}
 
 	abort_on error --return --display-help
@@ -575,6 +588,9 @@ proc ::octopusRC::read_dft_abstract_model args {
 		if { "$module" != "" } {
 			# Module(s) specified at command line. Thus do not find the Environment CTL keyword
 			set crt_module $module
+		} elseif { "$instance" != "" } {
+			# Instances specified at command line
+			set crt_module [get_attribute subdesign $instance]
 		} else {
 			# No module specified, thus search for Environment keyword in CTL
 			set fileID [open $crt_ctl_file {RDONLY} ]
@@ -598,7 +614,13 @@ proc ::octopusRC::read_dft_abstract_model args {
 			# There is an option "set disable_power_ground_pin_support 0", but this makes RC < 10.10.300 crash
 			set library_instantiations [filter libcell "[lindex [find -libcell $crt_module] 0]" [find / -inst * ] ]
 			set unresolved_instantiations [filter subdesign "/designs/*/subdesigns/$crt_module" [filter unresolved true [find /designs -inst *] ] ]
-			set instances [concat $library_instantiations $unresolved_instantiations ]
+			if { "$instances" == "" } {
+				set instances [concat $library_instantiations $unresolved_instantiations ]
+				display_message debug "<2> Found instances: $instances"
+			} else {
+				set instances $instance
+				display_message debug "<2> Command line specified instances: $instances"
+			}
 			foreach crt_instance $instances {
 				eval ::read_dft_abstract_model \
 					-segment_prefix "[file tail ${crt_module}]=[file tail ${crt_instance}]++" \
@@ -606,9 +628,7 @@ proc ::octopusRC::read_dft_abstract_model args {
 					$assume_connected_shift_enable \
 					-ctl $crt_ctl_file
 			}
-			if { [ llength $instances ] == 0 } {
-					::octopus::display_message error "There is no instantiation of module ${crt_module}. Was this optimized away?"
-			}
+
 			if { [llength $unresolved_instantiations] != 0  } {
 				::octopus::display_message warning "I am defining a chain on an unresolved instance: $unresolved_instantiations."
 				::octopus::display_message warning "		 Check why it's unresolved."
@@ -625,7 +645,15 @@ proc ::octopusRC::read_dft_abstract_model args {
 					set_attribute boundary_opto false  $full_path_crt_module
 				}
 				set iii 0
-				foreach crt_instance [get_attribute instances $full_path_crt_module] {
+				if { "$instances" == "" } {
+					set instances [get_attribute instances $full_path_crt_module]
+					display_message debug "<2> Found instances: $instances"
+				} else {
+					set instances $instance
+					display_message debug "<2> Command line specified instances: $instances"
+				}
+
+				foreach crt_instance $instances {
 					eval ::read_dft_abstract_model \
 						-segment_prefix "[file tail ${crt_module}]=[file tail ${crt_instance}]++${iii}" \
 						-instance $crt_instance \
@@ -634,6 +662,9 @@ proc ::octopusRC::read_dft_abstract_model args {
 					incr iii
 				}
 			}
+		}
+		if { [ llength $instances ] == 0 } {
+				::octopus::display_message error "There is no instantiation of module ${crt_module}. Was this optimized away?"
 		}
 		::octopus::display_message debug "<1> END Defining DfT abstract segments for all instances of module '${crt_module}'"
 	}
