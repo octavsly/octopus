@@ -64,14 +64,16 @@ namespace eval ::octopusRC {
 # This procedure sets the maturity level of the design and sets attributes from the specified --rc-attributes-file
 proc ::octopusRC::set_design_maturity_level args {
 
+	set  help_head {
+		::octopus::display_message none "Set the RC parameters based on the design maturity level"
+	}
+
 	set var_array(10,maturity-level)	[list "--maturity-level" "diamond" "string" "1" "1" "pyrite bronze silver gold diamond" "Specify the maturity level of the design."]
 	set var_array(20,rc-attributes-file)	[list "--rc-attributes-file" "rc_attributes.txt" "string" "1" "infinity" "" "Specify the file from which settings will be extracted."]
 
 	extract_check_options_data ; #description of var_array variable is given in this procedures
 
-	set  help_head {
-		::octopus::display_message none "Set the RC parameters based on the design maturity level"
-	}
+
 
 	::octopus::abort_on error --return --display-help
 
@@ -136,7 +138,9 @@ proc ::octopusRC::modules_under args {
 
 	set var_array(max_level) 	[list "--max_level" "infinity" "string" "1" "1" "" ]
 	set var_array(module_name) 	[list "--module_name" "<none>" "string" "1" "1" "" ]
+
 	extract_check_options_data ; #description of var_array variable is given in this procedure
+
 	::octopus::display_message error "Procedure not implemented"
 	::octopus::append_cascading_variables
 
@@ -261,6 +265,7 @@ proc ::octopusRC::fan_hierarchical args {
 	set var_array(40,include-nets)			[list "--include-nets" "false" "boolean" "0" "0" "Include nets during the traces. If this option is omitted, only ports are returned."]
 
 	extract_check_options_data ; #description of var_array variable is given in this procedures
+
 	::octopus::display_message debug  "<1> Entering: $parrent_instance"
 
 	if { $max_depth > 1 } {
@@ -420,14 +425,15 @@ proc ::octopusRC::set_attribute_recursive args {
 	set var_array(30,objects)				[list "--objects" "<none>" "string" "1" "infinity" "" "Specify the objects for which the attributes will beapplied. e.g. instaces/modules/pins/etc."]
 	set var_array(40,direction)				[list "--direction" "down" "string" "1" "1" "up down both" "Specify the direction of recursion. up: all parents will get the attribute, down: all children. both:"]
 
+	set help_tail {
+		puts "More information:"
+		puts "    --objects:   While pins, or other projects, can be specified, it makes no sense, since recursion is not yet implemented"
+	}
+
 	extract_check_options_data ; #description of var_array variable is given in this procedures
 
 	::octopus::abort_on error --return --display-help
 
-	set help_tail {
-		::octopus::display_message none "More information:"
-		::octopus::display_message none "    --objects:   While pins, or other projects, can be specified, it makes no sense, since recursion is not yet implemented"
-	}
 
 	if { "$direction" != "up" } {
 		::octopus::display_message error "Direction $direction not implemented"
@@ -647,6 +653,9 @@ proc ::octopusRC::define_dft_test_signals args {
 		lappend timing_modes [file tail $iii]
 	}
 
+	set  help_head {
+		::octopus::display_message none "Extracts DfT constraints from SDC set_case_analysis statements"
+	}
 	# Procedure options parsing
 	set var_array(10,timing-modes)	[list "--timing-modes" "<none>" "string" "1" "infinity" "$timing_modes" "The timing mode(s) the set_case_analysis will be extracted from" ]
 	set var_array(20,skip-signals)	[list "--skip-signals" "false" "string" "1" "infinity" "" "Skip the signal specified in the constraints (not recommended)" ]
@@ -654,10 +663,6 @@ proc ::octopusRC::define_dft_test_signals args {
 	set var_array(40,test-mode)	[list "--test-mode" "shift" "string" "1" "1" "shift capture" "The DfT mode the timing mode is associated with"]
 
 	extract_check_options_data ; #description of var_array variable is given in this procedures
-
-	set  help_head {
-		::octopus::display_message none "Extracts DfT constraints from SDC set_case_analysis statements"
-	}
 
 	::octopus::abort_on error --return --display-help
 
@@ -812,6 +817,10 @@ proc ::octopusRC::write args {
 
 	::octopusRC::check_set_common_vars
 
+	set  help_head {
+		::octopus::display_message none "Write netlists, databases, lec, reports"
+	}
+
 	set var_array(10,stage)			[list "--stage" "<none>" "string" "1" "1" "rtl elb gen mapped mapped_scn syn inc_scn scn" "String specifying the design stage. It is used in file names." ]
 	set var_array(20,netlist-path)		[list "--netlist-path" "${_NETLIST_PATH}" "string" "1" "1" "" "Path were the netlist is written to." ]
 	set var_array(30,no-netlist)		[list "--no-netlist" "false" "boolean" "" "" "" "Prevents writing the design netlist" ]
@@ -822,11 +831,8 @@ proc ::octopusRC::write args {
 	set var_array(75,rm-designs)		[list "--rm-designs" "" "string" "1" "infinity" "" "Remove the design before writing out netlist." ]
 	set var_array(80,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
 	set var_array(90,_REPORTS_PATH)		[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
-	extract_check_options_data
 
-	set  help_head {
-		::octopus::display_message none "Write netlists, databases, lec, reports"
-	}
+	extract_check_options_data
 
 	::octopus::abort_on error --return --display-help
 
@@ -957,13 +963,16 @@ proc ::octopusRC::read_cpf args {
 
 	::octopusRC::check_set_common_vars
 
-	set var_array(10,cpf)		[list "--cpf" "<none>" "string" "1" "1" "" "CPF file" ]
-	set var_array(20,DESIGN)	[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
-	set var_array(30,_REPORTS_PATH)	[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
-	extract_check_options_data
 	set  help_head {
 		::octopus::display_message none "Reads the CPF file and does standard checks"
 	}
+
+	set var_array(10,cpf)		[list "--cpf" "<none>" "string" "1" "1" "" "CPF file" ]
+	set var_array(20,DESIGN)	[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
+	set var_array(30,_REPORTS_PATH)	[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
+
+	extract_check_options_data
+
 	::octopus::abort_on error --return --display-help
 
 	::read_cpf $cpf
@@ -994,14 +1003,16 @@ proc ::octopusRC::synthesize args {
 
 	::octopusRC::check_set_common_vars
 
+	set  help_head {
+		::octopus::display_message none "Synthesize the design and writes out useful files: netlist, lec do, "
+	}
+
 	set var_array(10,type)		[list "--type" "<none>" "string" "1" "1" "to_generic to_mapped to_mapped_incremental" "Specify to synthesis type" ]
 	set var_array(20,netlist-path)	[list "--netlist-path" "${_NETLIST_PATH}" "string" "1" "1" "" "Path were the netlist is written to." ]
 	set var_array(30,DESIGN)	[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
 	set var_array(40,_REPORTS_PATH)	[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
 	extract_check_options_data
-	set  help_head {
-		::octopus::display_message none "Synthesize the design and writes out useful files: netlist, lec do, "
-	}
+
 	::octopus::abort_on error --return --display-help
 
 	# Specify the effort required for Generic Synthesis. It is recommended to
@@ -1050,6 +1061,10 @@ proc ::octopusRC::constraints_from_tcbs args {
 
 	::octopusRC::check_set_common_vars
 
+	set  help_head {
+		::octopus::display_message none "Extracts the TCB values in a specific mode and writes out constraints"
+	}
+
 	set var_array(10,tcb-td-file)		[list "--tcb-td-file" "<none>" "string" "1" "infinity" "" "TCB test data file(s)" ]
 	set var_array(20,mode)			[list "--mode" "<none>" "string" "1" "1" "" "TCB mode for which constant values are extracted" ]
 	set var_array(30,exclude-ports)		[list "--exclude-ports" "" "string" "1" "infinity" "" "Skip the specified TCB port(s) completely." ]
@@ -1058,16 +1073,15 @@ proc ::octopusRC::constraints_from_tcbs args {
 	set var_array(40,constraint-file)	[list "--constraint-file" "<none>" "string" "1" "1" "" "The name of the file where the constraints are written into" ]
 	set var_array(50,append)		[list "--append" "false" "boolean" "" "" "" "Appends into <constraint-file> instead of truncating it" ]
 	set var_array(60,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
-	extract_check_options_data
-	set  help_head {
-		::octopus::display_message none "Extracts the TCB values in a specific mode and writes out constraints"
-	}
 
 	set  help_tail {
 		::octopus::display_message none "Note:"
 		::octopus::display_message none "--ports option is compulsory for design maturity higher than bronze, if the design is not in application mode."
 		::octopus::display_message none "        The reason is that you might hide valid timing paths"
 	}
+
+	extract_check_options_data
+
 	::octopus::abort_on error --return --display-help
 
 	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pyrite" && \
@@ -1207,14 +1221,15 @@ proc ::octopusRC::read_hdl args {
 
 	global env
 
-	set var_array(10,file)		[list "--file" "<none>" "string" "1" "infinity" "" "File(s) containing the list with all RTL to be read " ]
-	set var_array(20,type)		[list "--type" "<none>" "string" "1" "1" "text utel rc" "Type of file to read in" ]
-	set var_array(30,skip-files)	[list "--skip-files" "<none>" "string" "1" "infinity" "" "Skip the file(s). E.g. interfaces/behaviour/etc. Should be exactly the same as specified in 'file'" ]
-	extract_check_options_data
 	set  help_head {
 		::octopus::display_message none "Reads in RTL files based on certain types of file lists"
 		::octopus::display_message none "currently only rc and utel file list are supported"
 	}
+
+	set var_array(10,file)		[list "--file" "<none>" "string" "1" "infinity" "" "File(s) containing the list with all RTL to be read " ]
+	set var_array(20,type)		[list "--type" "<none>" "string" "1" "1" "text utel rc" "Type of file to read in" ]
+	set var_array(30,skip-files)	[list "--skip-files" "<none>" "string" "1" "infinity" "" "Skip the file(s). E.g. interfaces/behaviour/etc. Should be exactly the same as specified in 'file'" ]
+	extract_check_options_data
 
 	::octopus::abort_on error --return --display-help
 
@@ -1324,12 +1339,13 @@ proc ::octopusRC::output_driver args {
 
 	global env
 
-	set var_array(10,modules)	[list "--modules" "<none>" "string" "1" "infinity" "" "List of module(s) in the design." ]
-	set var_array(20,pins)		[list "--pins" "<none>" "string" "1" "1" "" "The output port(s). Will be used to find the driver." ]
-	extract_check_options_data
 	set  help_head {
 		::octopus::display_message none "Retruns the list of drivers of the ports specified."
 	}
+
+	set var_array(10,modules)	[list "--modules" "<none>" "string" "1" "infinity" "" "List of module(s) in the design." ]
+	set var_array(20,pins)		[list "--pins" "<none>" "string" "1" "1" "" "The output port(s). Will be used to find the driver." ]
+	extract_check_options_data
 
 	::octopus::abort_on error --return --display-help
 
@@ -1360,13 +1376,14 @@ proc ::octopusRC::output_driver args {
 # BEGIN reprot timing between arbitrary ports in the design
 proc ::octopusRC::report_timing args {
 
+	set  help_head {
+		::octopus::display_message none "Extracts the port name of the clock gate inside the CCB's"
+	}
 	set var_array(10,from)		[list "--from" "" "string" "1" "infinity" "" "Reports timing from any port in the design" ]
 	set var_array(20,to)		[list "--to" "" "string" "1" "infinity" "" "Report timing to any port in the design." ]
 	set var_array(30,redirect) 	[list ">" "stdout" "string" "1" "1" "" "Redirects the output to a file" ]
 	extract_check_options_data
-	set  help_head {
-		::octopus::display_message none "Extracts the port name of the clock gate inside the CCB's"
-	}
+
 
 	if { "$from" == "" && "$to" == "" } {
 		display_message error "At least -from or -to needs to be specified"
