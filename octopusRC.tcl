@@ -474,6 +474,7 @@ proc ::octopusRC::set_attribute_recursive args {
 proc ::octopusRC::define_dft_test_clocks args {
 
 	# Find available timing modes
+	set timing_modes ""
 	foreach iii [find / -vname -mode *] {
 		lappend timing_modes [file tail $iii]
 	}
@@ -680,6 +681,7 @@ proc ::octopusRC::read_dft_abstract_model args {
 proc ::octopusRC::define_dft_test_signals args {
 
 	# Find available timing modes
+	set timing_modes ""
 	foreach iii [find / -vname -mode *] {
 		lappend timing_modes [file tail $iii]
 	}
