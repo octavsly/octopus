@@ -1478,3 +1478,107 @@ proc filter_valid_objects {direction objects} {
 }
 # END
 ################################################################################
+
+
+################################################################################
+# BEGIN lefs
+# Returns a list with all lef files found under a certain directory level. it searches for *.lef files
+#proc ::octopusRC::more_files_available args {
+#
+#	set var_array(10,directories) 			[list "--directories" "<none>" "string" "1" "infinity" "" "The directories for which we search for lef files." ]
+#	set var_array(20,pattern)			[list "--pattern" "*.lef" "string" "1" "infinite" "" "File pattern to search for." ]
+#
+#	extract_check_options_data ; #description of var_array variable is given in this procedures
+#	::octopus::display_message debug  "<1> Entering: $parrent_instance"
+#
+#	display_message error "Procedure [::octopus::calling_proc -1] not implemented"
+#	::octopus::abort_on error --return --display-help
+#
+#	findFiles $directories $extension
+#
+#}
+# END lefs
+################################################################################
+
+
+################################################################################
+# BEGIN
+proc ::octopusRC::report_power_over_area args {
+
+	set  help_head {
+		::octopus::display_message none "Returns a list with power, area and power/area numbers of the selected instances."
+	}
+
+	set var_array(10,root) 			[list "--root" "/" "string" "1" "infinity" "" "The directories where the instances are searched" ]
+	set var_array(20,max-depth)		[list "--max-depth" "infinity" "string" "1" "1" "" "Max depth of the search" ]
+	set var_array(21,min-depth)		[list "--min-depth" "0" "number" "1" "1" "" "Min depth of the search" ]
+	set var_array(90,csv)			[list "--csv" "stdout" "string" "1" "1" "" "The name of comma separated file. stdout will mean 'on-screen'" ]
+
+	set  help_tail {
+		::octopus::display_message info "More information:"
+		::octopus::display_message none "    RC has powerful filtering engines. You can use that to pass the instances that you need to this procedure"
+		::octopus::display_message none "    e.g.: \[filter -invert lp_internal_power 0.000000 \[filter libcell * \[find / -inst *\]\]\]"
+		::octopus::display_message none "      will get all libcells for which internal power is not zero."
+	}
+
+	extract_check_options_data
+
+	if { "$csv" != "stdout" } {
+		if { [catch {set fd [open ${csv} w 0640] } error ] } {
+			display_message error "$error"
+		}
+	} else {
+		set fd stdout
+	}
+
+	set jjj "/designs/*"
+	set all_power [expr [get_attribute lp_internal_power $jjj] + [get_attribute lp_net_power $jjj] + [get_attribute lp_leakage_power $jjj]]
+	set all_area  [get_attribute cell_area $jjj]
+
+	::octopus::abort_on error --return --display-help
+
+	puts $fd "Instance, Leakage Power, Internal Power, Net Power, Internal/Net, Power,%of total power,Area,% of total area, Power/Area,"
+	set ipw ""
+	foreach iii $root {
+		if { [catch {get_attribute libcell $iii} ] || "[get_attribute libcell $iii]" == "" && ${max-depth} > 0 } {
+			set all_instances [find $iii -maxdepth ${max-depth} -mindepth ${min-depth} -inst *]
+		} else {
+			set all_instances $iii
+		}
+		foreach jjj $all_instances {
+			set jjj_pi [get_attribute lp_internal_power $jjj]
+			set jjj_pn [get_attribute lp_net_power $jjj]
+			set jjj_pl [get_attribute lp_leakage_power $jjj]
+
+			if { $jjj_pn != 0 } {
+				set jjj_piOpn [expr double(int(1000*$jjj_pi/$jjj_pn))/1000]
+			} elseif {$jjj_pi == 0 }  {
+				set jjj_piOpn 0
+			} else {
+				display_message warning "Net power of $jjj is zero."
+				set jjj_piOpn infinite
+			}
+
+			set jjj_p [expr $jjj_pi + $jjj_pn + $jjj_pl]
+			set jjj_ppct [expr double(int($jjj_p*1000000/$all_power))/10000]
+			set jjj_a [get_attribute cell_area $jjj]
+			set jjj_apct [expr double(int($jjj_a*1000000/$all_area))/10000]
+			if { $jjj_a != 0 } {
+				set jjj_pOa [expr $jjj_p/$jjj_a]
+			} elseif {$jjj_p == 0 }  {
+				set jjj_pOa 0
+			} else {
+				display_message warning "Area of cell $jjj is zero. Power over area number will be set to infinite"
+				set jjj_pOa infinite
+			}
+			set jjj_name [vname $jjj]
+			#lappend ipw [list $jjj_name $jjj_pl $jjj_pi $jjj_pn $jjj_piOpn $jjj_p $jjj_ppct $jjj_a $jjj_apct $jjj_pOa $jjj_pl $jjj_pi $jjj_pn $jjj_piOpn]
+			puts $fd "$jjj_name,$jjj_pl,$jjj_pi,$jjj_pn,$jjj_piOpn,$jjj_p,$jjj_ppct,$jjj_a,$jjj_apct,$jjj_pOa"
+		}
+	}
+	flush $fd
+	if { "$csv" != "stdout" } { close $fd }
+	#return  $ipw
+}
+# END 
+################################################################################
