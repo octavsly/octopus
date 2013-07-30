@@ -281,9 +281,9 @@ proc ::octopus::add_option args {
 
 	set var_array(10,name)		[list "--name" "<none>" "string" "1" "1" "" "The name of the option. It should start with -- or - , otherwise an error will be generated"]
 	set var_array(20,default)	[list "--default" "<no default>" "string" "1" "1" "" "The default value of the option. If no default value is supplied, this option is mandatory when calling the procedure."]
-	set var_array(30,type)		[list "--type" "string" "string" "1" "1" "number string boolean help debug" "The type of the option being specified."]
-	set var_array(40,min)		[list "--min" "1" "number" "1" "1" "" "The minimum number of arguments."]
-	set var_array(50,max)		[list "--max" "1" "string" "1" "1" "" "The maximum number of arguments."]
+	set var_array(30,type)		[list "--type" "string" "string" "1" "1" "number string boolean" "What types of arguments we expect for the command line option."]
+	set var_array(40,min)		[list "--min" "1" "number" "1" "1" "" "The minimum number of arguments. This number should be >= 0"]
+	set var_array(50,max)		[list "--max" "1" "string" "1" "1" "" "The maximum number of arguments. Besides numbers, the keyword infinity can be specified."]
 	set var_array(60,valid-values)	[list "--valid-values" "" "string" "1" "infinity" "" "Allowed values for option"]
 	set var_array(70,help-text)	[list "--help-text" "No help available. Urge the developer to provide useful information" "string" "1" "1" "" "The help message explaining the option"]
 
@@ -307,6 +307,10 @@ proc ::octopus::add_option args {
 
 	if { $max != "infinity" && ! [true_if_number $max] } {
 		display_message error "--max argument must be either a number or infinity keyword"
+	}
+
+	if { $min < 0 } {
+		display_message error "Argument to --min needs to be bigger than 0. Currently it is $min"
 	}
 
 	::octopus::abort_on error --return
@@ -655,10 +659,14 @@ proc ::octopus::display_help {} {
 			if { $max_nr_arg != "" && [true_if_number $max_nr_arg]  && $max_nr_arg > 1 } {
 				set td "${td}...${td}"
 			}
-			if { "$default" != "<none>" && "$default" != "" } {
+			if { "$default" != "<none>" } {
 				set sbf "\["
 				set sbr "\]"
-				set def " Default value is %b${default}%n."
+				if { "$default" != "" } {
+					set def " Default value is %b${default}%n."
+				} else {
+					set def ""
+				}
 			} else {
 				set sbf ""
 				set sbr ""
