@@ -1044,8 +1044,8 @@ proc ::octopusRC::synthesize args {
 
 	# Specify the effort required for Generic Synthesis. It is recommended to
 	# specify medium for Generic and non incremental synthesis for the first run
-	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pyrite" && \
-		"[get_attribute octopusRC_design_maturity_level]" != "bronze"} {
+	if { 	"[get_attribute octopusRC_design_maturity_level]" == "pyrite" || \
+		"[get_attribute octopusRC_design_maturity_level]" == "bronze"} {
 		set effort_generic 	medium
 		set effort_mapped 	medium
 		set effort_incremental	medium
