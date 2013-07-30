@@ -27,6 +27,7 @@ namespace eval ::octopus:: {
 	namespace export \
 			set_octopus_color \
 			display_message \
+			add_option \
 			extract_check_options_data \
 			debug_variables \
 			summary_of_messages \
@@ -269,6 +270,56 @@ proc ::octopus::true_if_number { tocheck } {
 
 
 ################################################################################
+# BEGIN add_option
+# Description:
+# 	This procedure will be replacing the definition of var_array in all the
+#	procedures, in order to make the option addition easier
+proc ::octopus::add_option args {
+
+	upvar var_array va_internal
+	upvar order order
+
+	set var_array(10,name)		[list "--name" "<none>" "string" "1" "1" "" "The name of the option. It should start with -- or - , otherwise an error will be generated"]
+	set var_array(20,default)	[list "--default" "<no default>" "string" "1" "1" "" "The default value of the option. If no default value is supplied, this option is mandatory when calling the procedure."]
+	set var_array(30,type)		[list "--type" "string" "string" "1" "1" "number string boolean help debug" "The type of the option being specified."]
+	set var_array(40,min)		[list "--min" "1" "number" "1" "1" "" "The minimum number of arguments."]
+	set var_array(50,max)		[list "--max" "1" "string" "1" "1" "" "The maximum number of arguments."]
+	set var_array(60,valid-values)	[list "--valid-values" "" "string" "1" "infinity" "" "Allowed values for option"]
+	set var_array(70,help-text)	[list "--help-text" "No help available. Urge the developer to provide useful information" "string" "1" "1" "" "The help message explaining the option"]
+
+	::octopus::extract_check_options_data sensitive
+
+	::octopus::abort_on error --return
+
+	if { "$default" == "<no default>" } {
+		set default "<none>"
+	}
+
+	if { [string range $name 0 0] != "-" } {
+		display_message error "Option specified with --name does not start with symbol -"
+	}
+
+	if { [info exists order] } {
+		incr order
+	} else {
+		set order 0
+	}
+
+	if { $max != "infinity" && ! [true_if_number $max] } {
+		display_message error "--max argument must be either a number or infinity keyword"
+	}
+
+	::octopus::abort_on error --return
+
+	set va_internal($order,[string trim $name "-"]) [list "$name" "$default" "$type" "$min" "$max" "${valid-values}" "$help-text"]
+
+	::octopus::display_message debug "<1000> set va_internal($order,[string trim $name \"-\"]) [list \"$name\" \"$default\" \"$type\" \"$min\" \"$max\" \"${valid-values}\" \"$help-text\"]"
+	::octopus::append_cascading_variables
+	return 0
+}
+# END
+################################################################################
+################################################################################
 # BEGIN extract_check_options_data
 # Description:
 #	This is a generic procedure for parsing command line options of procedures
@@ -297,7 +348,7 @@ proc ::octopus::true_if_number { tocheck } {
 
 # Examples of usage. See info_procedures.tcl
 
-proc ::octopus::extract_check_options_data { } {
+proc ::octopus::extract_check_options_data { {parsing standard} } {
 
 	upvar execution_trace execution_trace
 
@@ -409,8 +460,8 @@ proc ::octopus::extract_check_options_data { } {
 	set option_name ""
 
 	foreach cur_option $passed_options {
-		# For each option passsed to the procedure identify the parameters that should be respected
-		if { [regexp -- {-+[^\s]*} $cur_option ] || "$cur_option" == ">" } {
+		# For each option passed to the procedure identify the parameters that should be respected
+		if { ! ($parsing == "sensitive" && $option_name == "--name") && ([regexp -- {-+[^\s]*} $cur_option ] || "$cur_option" == ">") } {
 			# This appears to be an option so search for it
 			set found_option [lsearch -exact "$allowed_options" ${cur_option}]
 			if { $found_option < 0 } {
