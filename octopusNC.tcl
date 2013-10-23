@@ -80,7 +80,7 @@ proc ::octopusNC::display_strange_warnings_fatals args {
 	display_message info "BEGIN Searching for Errors/Fatal/Warnings (uncommon)"
 	display_message info "--------------------------------------------------------------------------------"
 
-	set search_strings  [list {\*E} {\*F} {\*W} ]
+	set search_strings  [list {\*E} {\*F} {\*W} {: error:}]
 	set exclude_strings [list {CDS.LIB file included multiple} {default binding occurred for component instance} {Unable to list the views of bmslib.README} {Unable to find an 'hdl.var' file to load in} {*W,DLWNEW: Intermediate file} ]
 
 	# Due to NFS problems it is advisable to run a ls before
@@ -98,26 +98,29 @@ proc ::octopusNC::display_strange_warnings_fatals args {
 	}
 
 	foreach crt_log [glob $file ] {
-	    set fileId_log [open $crt_log {RDONLY} ]
-	    foreach line [split [read $fileId_log] \n] {
-	          # Process line
-	            foreach crt_ss $search_strings {
-	                if { [ string match "*${crt_ss}*" $line] } {
-	                    #puts "$crt_ss $line"
-	                    set exclude_found "false"
-	                    foreach crt_es $exclude_strings {
-	                        if { [ string match "*${crt_es}*" $line] } {
-	                            set exclude_found "true"
-	                            break
-	                        }
-	                    }
-	                    if { "${exclude_found}" == "false"} {
-	                        display_message warning $line
-	                    }
-	                }
-	            }
-	    }
-	    close $fileId_log
+		set fileId_log [open $crt_log {RDONLY} ]
+		set al 0
+		foreach line [split [read $fileId_log] \n] {
+			# Process line
+			foreach crt_ss $search_strings {
+				if { [ string match "*${crt_ss}*" $line] } {
+					set al ${after-lines}
+					foreach crt_es $exclude_strings {
+						if { [ string match "*${crt_es}*" $line] } {
+							set al 0
+							break
+						}
+					}
+
+				}
+
+			}
+			if {$al > 0} {
+				display_message warning $line
+				set al [expr $al - 1]
+			}
+		}
+		close $fileId_log
 	}
 	display_message info "--------------------------------------------------------------------------------"
 	display_message info "END"
