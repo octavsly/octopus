@@ -258,25 +258,23 @@ proc ::octopusRC::advanced_recursive_grouping args {
 # If this can be replaced by a simple RC command just modify it.
 proc ::octopusRC::fan_hierarchical args {
 
-	set var_array(05,max-depth) 			[list "--max-depth" "infinite" "number" "1" "1" "" "Maximum logic depth the trace should. Currently only 1 level is implemented." ]
-	set var_array(10,pin)				[list "--pin" "<none>" "string" "1" "infinite" "" "Pin name with full cadence path, vname or not." ]
-	set var_array(20,fan)				[list "--fan" "<none>" "string" "1" "1" "in out" "Type of fan."]
-	set var_array(30,vname)				[list "--vname" "false" "boolean" "0" "0" "" "Return the string is vname format" ]
-	set var_array(40,include-nets)			[list "--include-nets" "false" "boolean" "0" "0" "Include nets during the traces. If this option is omitted, only ports are returned."]
+	::octopus::add_option --name "--max-depth" --default "infinity" --type number --help-text "Maximum logic depth the trace should. Currently only 1 level is implemented."
+	::octopus::add_option --name "--pin" --max "infinity" --help-text "Pin name with full cadence path, vname or not."
+	::octopus::add_option --name "--fan" --valid-values "in out" --help-text "Type of fan."
+	::octopus::add_option --name "--vname" --default "false" --type "boolean" --help-text "Return the string in vname format"
+	::octopus::add_option --name "--include-nets" --default "false" --type "boolean" --help-text "Include nets during the traces. If this option is omitted, only ports are returned."
 
 	extract_check_options_data ; #description of var_array variable is given in this procedures
 
-	::octopus::display_message debug  "<1> Entering: $parrent_instance"
-
-	if { $max_depth > 1 } {
-		::octopus::display_message error "--max_depth > 1 is not yet implemented"
+	if { ${max-depth} > 1 } {
+		::octopus::display_message error "--max-depth > 1 is not yet implemented"
 	} else {
-		set max_depth 1
+		set max-depth 1
 	}
 
 	::octopus::abort_on error --return --display-help
 
-	set stop_at [fan${fan} -max_pin_depth $max_depth $pin]
+	set stop_at [fan${fan} -max_pin_depth ${max-depth} $pin]
 	set max_rec_levels 9999
 	set crt_rec_level 1
 	set temp ""
@@ -297,9 +295,9 @@ proc if_vname {pin} {
 }
 
 proc include_nets {net} {
-	upvar include_nets include_nets
+	upvar include-nets include-nets
 	upvar vname vname
-	if { "$include_nets" == "true" } {
+	if { "${include-nets}" == "true" } {
 		return [if_vname $net]
 	} else {
 		return
@@ -314,7 +312,7 @@ proc trace_pins_hierarchical {pin} {
 	upvar max_rec_levels max_rec_levels
 	upvar crt_rec_level crt_rec_level
 	upvar vname vname
-	upvar include_nets include_nets
+	upvar include-nets include-nets
 
 	# Return the value of teh pin if we reached the end of recursion or we reached the maximum recursion levels
 	if { [string match "* $pin *" " $stop_at "] || $crt_rec_level > $max_rec_levels || [string match "*/constants/*" $pin] > 0 } {
@@ -368,7 +366,7 @@ proc trace_pins_hierarchical {pin} {
 			::octopus::display_message none "hierarchical_attribute=$hierarchical_attribute"
 		}
 	}
-	return [concat [include_nets $net] $accumulate_ports]
+	return [concat [include-nets $net] $accumulate_ports]
 }
 # END fanin_hierarchical
 ################################################################################
