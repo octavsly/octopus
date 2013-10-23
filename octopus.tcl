@@ -758,13 +758,13 @@ proc ::octopus::check_file args {
 
 proc ::octopus::parse_file_set args {
 
-	set var_array(10,file)  	[list "--file" "<none>" "string" "1" "infinity" "" "The sourec files that need to be parsed"]
-	set var_array(20,type)    	[list "--type" "<none>" "string" "1" "1" "utel diehard" "Type of file."]
+	add_option --name "--file" --max infinity --help-text "The source files that need to be parsed"
+	add_option --name "--type" --valid-values "utel diehard" --help-text "Type of file"
 	::octopus::extract_check_options_data
 
 	::octopus::abort_on error --return
 
-	set file_set_total ""
+	set file_set_total ""; set file_set "";
 	switch -- $type {
 		utel {
 			foreach crt_file ${file} {

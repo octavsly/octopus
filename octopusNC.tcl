@@ -71,7 +71,8 @@ proc ::octopusNC::read_hdl args {
 # TO DO: make it a general procedure to be used by other parts of octopus. Combine it with the temposync procedure which does something similar
 proc ::octopusNC::display_strange_warnings_fatals args {
 
-	set var_array(file) 	[list "--file" "<none>" "string" "1" "infinity" "" "List of files required to parse the error messages" ]
+	add_option --name "--file" --max infinity --help-text "List of files required to parse the error messages"
+	add_option --name "--after-lines" --default 3 --type "number" --help-text "How many lines to display after the string was detected"
 
 	::octopus::extract_check_options_data
 
