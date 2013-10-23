@@ -315,7 +315,7 @@ proc ::octopus::add_option args {
 
 	::octopus::abort_on error --return
 
-	set va_internal($order,[string trim $name "-"]) [list "$name" "$default" "$type" "$min" "$max" "${valid-values}" "$help-text"]
+	set va_internal($order,[string trim $name "-"]) [list "$name" "$default" "$type" "$min" "$max" "${valid-values}" "${help-text}"]
 
 	::octopus::display_message debug "<1000> set va_internal($order,[string trim $name \"-\"]) [list \"$name\" \"$default\" \"$type\" \"$min\" \"$max\" \"${valid-values}\" \"$help-text\"]"
 	::octopus::append_cascading_variables
