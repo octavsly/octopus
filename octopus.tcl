@@ -782,6 +782,11 @@ proc ::octopus::parse_file_set args {
 		}
 	}
 
+	if { "$file_set_total" == "" } {
+		display_message error "Sourced files were empty!!!"
+	}
+	::octopus::abort_on error --return
+
 	::octopus::append_cascading_variables
 
 	return $file_set_total
