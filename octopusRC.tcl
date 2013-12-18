@@ -718,6 +718,7 @@ proc ::octopusRC::define_dft_test_signals args {
 
 	::octopus::display_message debug "<2> collecting set_case_analysis statements from RC database"
 	set all_signals "$all_signals [filter timing_case_logic_value_by_mode {[^\s]+[\s]+[\d]} -regexp [concat [find / -pin *] [find / -port *]]]"
+	set all_processed_signals ""
 
 	foreach crt_timing_mode ${timing-modes} {
 		foreach crt_sgn $all_signals {
@@ -731,6 +732,10 @@ proc ::octopusRC::define_dft_test_signals args {
 				}
 				if { "[file tail $crt_mode]" == "$crt_timing_mode" } {
 					set aux_crt_sgn [string map [list \[ {\[} \] {\]} \\ {\\}] $crt_sgn]
+					if { [ lsearch $all_processed_signals $aux_crt_sgn] >= 0 } {
+						::octopus::display_message debug "<2> There is already a test_mode defined on $aux_crt_sgn"
+						continue
+					}
 					set cdcv [get_attribute dft_constant_value $aux_crt_sgn]
 					if { 	("$cdcv" == "high" || "$cdcv" == "low") && "$cdcv" != "$active" } {
 						::octopus::display_message warning "RC database contains already a test_mode defined on ${aux_crt_sgn} with a different value being: '$cdcv'"
@@ -741,6 +746,7 @@ proc ::octopusRC::define_dft_test_signals args {
 						::octopus::display_message info "User requested to skip defining a test value on $crt_sgn"
 						continue
 					}
+					lappend all_processed_signals $crt_sgn
 					eval ::define_dft test_mode -active $active $ssc $crt_sgn
 				}
 			}
