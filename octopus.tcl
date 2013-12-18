@@ -311,6 +311,14 @@ proc ::octopus::add_option args {
 		set default "<none>"
 	}
 
+	if { $name == "--redirect" } {
+		display_message error "--redirect option is reserved for >. Please pick another option"
+	}
+
+	if { $name == ">" } {# redirect active
+		set name "--redirect"
+	}
+				
 	if { [string range $name 0 0] != "-" } {
 		display_message error "Option specified with --name does not start with symbol -"
 	}
@@ -408,8 +416,19 @@ proc ::octopus::extract_check_options_data { {parsing standard} } {
 	}
 
 	# The values of the options need to be exported one level up
+	# In case the var referes to files to be opened then upvar the handle of the newly opened file
 	foreach option_var [array names var_array_trunk] {
 		if { "$option_var" != "execution_trace(debug-level)" } {
+			if { "$option_var" == "redirect" } {
+				if { "[set $option_var]" != "stdout" } {
+					upvar ${option_var}_filename ${option_var}
+					if { [catch {set $option_var [open [set ${option_var}] w 0640]} ] } {
+						display_message error "File [set $option_var] could not be opened"
+					} 
+				} else {
+					set $option_var stdout
+				}
+			} 
 			upvar $option_var $option_var
 		}
 	}
