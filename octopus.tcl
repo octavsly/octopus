@@ -175,6 +175,22 @@ proc ::octopus::display_message args {
 
 
 ################################################################################
+# BEGIN 
+# Simple procedure giving access to debug-level execution_trace array
+proc ::octopus::debug_level args {
+	upvar execution_trace execution_trace
+	if { ([info exists execution_trace(debug-level) ]} {
+		return $execution_trace(debug-level)
+	} else {
+		return 0
+	}
+}
+
+# END
+################################################################################
+
+
+################################################################################
 proc ::octopus::abort_on args {
 
 	set var_array(10,type)		[list "<orphaned>" "<none>" "string" "1" "infinity" "error warning info fixme tip workaround debug" "Type of messages the calling procedure will abort/return"]
