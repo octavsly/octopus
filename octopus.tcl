@@ -421,10 +421,11 @@ proc ::octopus::extract_check_options_data { {parsing standard} } {
 		if { "$option_var" != "execution_trace(debug-level)" } {
 			if { "$option_var" == "redirect" } {
 				if { "[set $option_var]" != "stdout" } {
-					upvar ${option_var}_filename ${option_var}
-					if { [catch {set $option_var [open [set ${option_var}] w 0640]} ] } {
+					if { [catch {set ${option_var}_fileId [open [set ${option_var}] w 0640]} ] } {
 						display_message error "File [set $option_var] could not be opened"
-					} 
+					} else {
+						upvar ${option_var}_fileId ${option_var}_fileId
+					}
 				} else {
 					set $option_var stdout
 				}
