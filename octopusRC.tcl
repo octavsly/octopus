@@ -68,17 +68,15 @@ proc ::octopusRC::set_design_maturity_level args {
 		::octopus::display_message none "Set the RC parameters based on the design maturity level"
 	}
 
-	set var_array(10,maturity-level)	[list "--maturity-level" "final" "string" "1" "1" "pre-alpha alpha beta release-candidate final" "Specify the maturity level of the design."]
-	set var_array(20,rc-attributes-file)	[list "--rc-attributes-file" "rc_attributes.txt" "string" "1" "infinity" "" "Specify the file from which settings will be extracted."]
+	::octopus::add_option --name "--maturity-level" --default "final" --valid-values "pre-alpha alpha beta release-candidate final" --help-text "Specify the maturity level of the design."
+	::octopus::add_option --name "--rc-attributes-file" --default "rc_attributes.txt" --max "infinity" --help-text "Specify the file from which settings will be extracted."
 
 	extract_check_options_data ; #description of var_array variable is given in this procedures
 
-
-
 	::octopus::abort_on error --return --display-help
 
-	::octopus::display_message info 	"Setting design maturity level to ${maturity-level}"
-	::octopus::display_message warning "maturity level setting is in ALPHA stage"
+	::octopus::display_message info		"Setting design maturity level to ${maturity-level}"
+	::octopus::display_message warning	"maturity level setting is in ALPHA stage"
 
 	# Nice feature of RC, allowing user defined attributes
 	define_attribute \
@@ -121,6 +119,7 @@ proc ::octopusRC::set_design_maturity_level args {
 	set synthesis_effort(release-candidate)	high
 	set synthesis_effort(final)	high
 
+	::octopus::append_cascading_variables
 }
 # END
 ################################################################################
@@ -136,12 +135,16 @@ proc ::octopusRC::set_design_maturity_level args {
 #	--module_name <name>		the name of the module
 proc ::octopusRC::modules_under args {
 
-	set var_array(max_level) 	[list "--max_level" "infinity" "string" "1" "1" "" ]
-	set var_array(module_name) 	[list "--module_name" "<none>" "string" "1" "1" "" ]
+	set  help_head {
+		::octopus::display_message none "Returns a list will all modules instantiated under one or more modules"
+	}
+
+	::octopus::add_option --name "--max-levels" --default "infinity" --help-text "How many levels of recursion should go under the specified module"
+	::octopus::add_option --name "--module-names" --help-text "Module name for which the modules will be listed"
 
 	extract_check_options_data ; #description of var_array variable is given in this procedure
 
-	::octopus::display_message error "Procedure not implemented"
+	::octopus::display_message error "Procedure ::octopusRC::modules_under not implemented"
 	::octopus::append_cascading_variables
 
 }
@@ -230,8 +233,8 @@ proc ::octopusRC::advanced_recursive_grouping args {
 
 	set_attribute group_generate_portname_from_netname true /
 
-	set var_array(10,group-children-of-instances)	[list "--group-children-of-instances" "<none>" "string" "1" "1" "" "Group all children of the specified instance(s)" ]
-	set var_array(30,exclude-parents-of-instances) 	[list "--exclude-parents-of-instances" "<none>" "string" "1" "1" "" "During grouping exclude all parent of the specified instance(s)" ]
+	::octopus::add_option --name "--group-children-of-instances" --help-text "Group all children of the specified instance(s)"
+	::octopus::add_option --name "--exclude-parents-of-instances" --help-text "During grouping, exclude all parent of the specified instance(s)"
 
 	extract_check_options_data ; #description of var_array variable is given in this procedures
 
@@ -413,9 +416,9 @@ proc ::octopusRC::report_attributes args {
 # BEGIN set_attribute_recursive
 proc ::octopusRC::set_attribute_recursive args {
 
-	set var_array(10,attribute)				[list "--attribute" "<none>" "string" "2" "2" "" "Specify the attribute to be applied. Format is: attribute <true|false>."]
-	set var_array(30,objects)				[list "--objects" "<none>" "string" "1" "infinity" "" "Specify the objects for which the attributes will beapplied. e.g. instaces/modules/pins/etc."]
-	set var_array(40,direction)				[list "--direction" "down" "string" "1" "1" "up down both" "Specify the direction of recursion. up: all parents will get the attribute, down: all children. both:"]
+	::octopus::add_option --name "--attribute" --min 2 --max 2 --help-text "Specify the attribute to be applied. Format is: attribute <true|false>."
+	::octopus::add_option --name "--objects" --max "infinity" --help-text "Specify the objects for which the attributes will be applied. e.g. instances/modules/pins/etc."
+	::octopus::add_option --name "--direction" --default "down" --valid-values "up down both" --help-text "Specify the direction of	recursion. up: all parents will get the attribute, down: all children.	both: all parents and children"
 
 	set help_tail {
 		puts "More information:"
@@ -471,9 +474,9 @@ proc ::octopusRC::define_dft_test_clocks args {
 		lappend timing_modes [file tail $iii]
 	}
 
-	set var_array(10,timing-modes)	[list "--timing-modes" "<none>" "string" "1" "infinity" "$timing_modes" "The timing mode(s) the clocks will be extracted from" ]
-	set var_array(20,skip-clocks)	[list "--skip-clocks" "false" "string" "1" "infinity" "" "Skip the clocks specified in the constraints" ]
-	set var_array(30,add-clocks)	[list "--add-clocks" "false" "string" "1" "infinity" "" "Add more clocks then the one specified in the constraints" ]
+	::octopus::add_option --name "--timing-modes" --max "infinity" --valid-values "$timing_modes" --help-text "The timing mode(s) the clocks will be extracted from to be added as DfT clocks" 
+	::octopus::add_option --name "--skip-clocks" --default "" --max "infinity" --help-text "Skip the specified clocks from the constraints to be added as DfT clocks"
+	::octopus::add_option --name "--add-clocks" --default "" --max "infinity" --help-text "Add the specified clocks, and not part of SDC constraints, in the DfT clocks."
 
 	extract_check_options_data ; #description of var_array variable is given in this procedures
 
@@ -484,12 +487,12 @@ proc ::octopusRC::define_dft_test_clocks args {
 	set all_clocks ""
 	# Check that all clocks specified by add-clocks is a valid object
 	foreach crt_add_clock ${add-clocks} {
-		if { "${add-clocks}" != "false" && [catch {lappend all_clocks [ls $crt_add_clock]} ] } {
+		if { "${add-clocks}" != "" && [catch {lappend all_clocks [ls $crt_add_clock]} ] } {
 			::octopus::display_message error "$crt_add_clock does not exist in the design"
 		}
 	}
 	foreach crt_skip_clock ${skip-clocks} {
-		if { "${skip-clocks}" != "false" && [catch {lappend all_clocks [ls $crt_skip_clock]} ] } {
+		if { "${skip-clocks}" != "" && [catch {lappend all_clocks [ls $crt_skip_clock]} ] } {
 			::octopus::display_message error "$crt_skip_clock does not exist in the design"
 		}
 	}
@@ -548,6 +551,7 @@ proc ::octopusRC::read_dft_abstract_model args {
 	}
 	eval $help_head
 
+	# not migrated to add_option since this procedure might disappear
 	set var_array(10,ctl)				[list "--ctl" "<none>" "string" "1" "infinity" "" "Specify the CTL file(s) to be read in. If --module option is used then only one file can be read in" ]
 	set var_array(20,assume-connected-shift-enable)	[list "--assume-connected-shift-enable" "false" "boolean" "" "" "" "Specify this option if the shift enable is already connected for all CTL files read in." ]
 	set var_array(30,module)			[list "--module" "" "string" "1" "1" "" "Specify the module/library cell associated with the ctl file. If missing 'Environment' CTL keyword will be used instead." ]
@@ -679,13 +683,13 @@ proc ::octopusRC::define_dft_test_signals args {
 	}
 
 	set  help_head {
-		::octopus::display_message none "Extracts DfT constraints from SDC set_case_analysis statements"
+		::octopus::display_message none "Extracts set_case_analysis statements in a certain timing mode and add them as DfT constraints"
 	}
 	# Procedure options parsing
-	set var_array(10,timing-modes)	[list "--timing-modes" "<none>" "string" "1" "infinity" "$timing_modes" "The timing mode(s) the set_case_analysis will be extracted from" ]
-	set var_array(20,skip-signals)	[list "--skip-signals" "false" "string" "1" "infinity" "" "Skip the signal specified in the constraints (not recommended)" ]
-	set var_array(30,add-signals)	[list "--add-signals" "false" "string" "1" "infinity" "" "Add more signals then the one specified in the constraints. (not recommended)" ]
-	set var_array(40,test-mode)	[list "--test-mode" "shift" "string" "1" "1" "shift capture" "The DfT mode the timing mode is associated with"]
+	::octopus::add_option --name "--timing-modes" --max "infinity" --valid-values "$timing_modes" --help-text "The timing mode(s) the set_case_analysis will be extracted from"
+	::octopus::add_option --name "--skip-signals" --default "" --max "infinity" --help-text  "Skip the DfT constraints for the specified signal (not recommended)"
+	::octopus::add_option --name "--add-signals" --default "" --max "infinity" --help-text "Add more DfT constraints then the one specified in the SDC constraints. (not recommended)"
+	::octopus::add_option --name "--test-mode" --default "shift" --valid-values "shift capture" --help-text "The DfT mode the timing mode is associated with"
 
 	extract_check_options_data ; #description of var_array variable is given in this procedures
 
@@ -697,13 +701,13 @@ proc ::octopusRC::define_dft_test_signals args {
 	set all_signals ""
 	# Check that all signals specified by add-signals are valid objects
 	foreach crt_add_signal ${add-signals} {
-		if { "${add-signals}" != "false" && [catch {lappend all_signals [ls $crt_add_signal]} ] } {
+		if { "${add-signals}" != "" && [catch {lappend all_signals [ls $crt_add_signal]} ] } {
 			::octopus::display_message error "$crt_add_signal does not exist in the design"
 		}
 	}
 	# Check that all signals specified by skip-signals are valid objects
 	foreach crt_skip_signal ${skip-signals} {
-		if { "${skip-signals}" != "false" && [catch {lappend all_signals [ls $crt_skip_signal]} ] } {
+		if { "${skip-signals}" != "" && [catch {lappend all_signals [ls $crt_skip_signal]} ] } {
 			::octopus::display_message error "$crt_skip_signal does not exist in the design"
 		}
 	}
@@ -752,6 +756,7 @@ proc ::octopusRC::define_dft_test_signals args {
 			}
 		}
 	}
+	::octopus::append_cascading_variables
 }
 # END
 ################################################################################
@@ -821,6 +826,7 @@ proc ::octopusRC::generate_list_of_clock_inverters_for_dft_shell args {
 	puts $redirect_fileId "}"
 
 	if { "$redirect" != "stdout" } {close $redirect_fileId}
+	::octopus::append_cascading_variables
 }
 # END
 ################################################################################
@@ -897,9 +903,9 @@ proc ::octopusRC::report_cg_tree args {
 		puts $redirect_fileId " ----------------------------------------------------------"
 	}
 
-		if { "$redirect" != "stdout" } {close $redirect_fileId}
-		display_message info "Clock-gating report generated!"
-		::octopus::append_cascading_variables
+	if { "$redirect" != "stdout" } {close $redirect_fileId}
+	display_message info "Clock-gating report generated!"
+	::octopus::append_cascading_variables
 }
 # END
 ################################################################################
@@ -917,16 +923,16 @@ proc ::octopusRC::write args {
 		::octopus::display_message none "Write netlists, databases, lec, reports"
 	}
 
-	set var_array(10,stage)			[list "--stage" "<none>" "string" "1" "1" "rtl elb gen mapped mapped_scn syn inc_scn scn" "String specifying the design stage. It is used in file names." ]
-	set var_array(20,netlist-path)		[list "--netlist-path" "${_NETLIST_PATH}" "string" "1" "1" "" "Path were the netlist is written to." ]
-	set var_array(30,no-netlist)		[list "--no-netlist" "false" "boolean" "" "" "" "Prevents writing the design netlist" ]
-	set var_array(40,no-lec)		[list "--no-lec" "false" "boolean" "" "" "" "Prevents writing out the lec do files" ]
-	set var_array(50,no-database)		[list "--no-database" "false" "boolean" "" "" "" "Prevents writing the design database" ]
-	set var_array(60,no-reports)		[list "--no-reports" "false" "boolean" "" "" "" "Prevents writing any reports" ]
-	set var_array(70,change-names)		[list "--change-names" "false" "boolean" "" "" "" "Allow only \"characters\", \"_\" and \"\[ \]\". Only if a netlist is written out." ]
-	set var_array(75,rm-designs)		[list "--rm-designs" "" "string" "1" "infinity" "" "Remove the design before writing out netlist." ]
-	set var_array(80,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
-	set var_array(90,_REPORTS_PATH)		[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
+	::octopus::add_option --name "--stage" --valid-values "rtl elb gen mapped mapped_scn syn inc_scn scn" --help-text "String specifying the design stage. It is used in file names."
+	::octopus::add_option --name "--netlist-path" --default "${_NETLIST_PATH}" --help-text "Path were the netlist is written to."
+	::octopus::add_option --name "--no-netlist" --default "false" --type "boolean" --help-text "Prevents writing the design netlist"
+	::octopus::add_option --name "--no-lec" --default "false" --type "boolean" --help-text "Prevents writing out the lec do files"
+	::octopus::add_option --name "--no-database" --default "false" --type "boolean" --help-text "Prevents writing the design database"
+	::octopus::add_option --name "--no-reports" --default "false" --type "boolean" --help-text "Prevents writing any reports"
+	::octopus::add_option --name "--change-names" --default "false" --type "boolean" --help-text "Allow only \"characters\", \"_\" and \"\[ \]\". Switch active only if a netlist is written out."
+	::octopus::add_option --name "--rm-designs" --default "" --max "infinity" --help-text "Remove the specified modules before writing out netlist."
+	::octopus::add_option --name "--design" --variable-name "DESIGN" --default "$DESIGN" --help-text "Top-Level design."
+	::octopus::add_option --name "--reports-path" --variable-name "_REPORTS_PATH" --default "$_REPORTS_PATH" --help-text "Directory storage for the reports."
 
 	extract_check_options_data
 
@@ -1022,6 +1028,7 @@ proc ::octopusRC::write args {
 	}
 
 	set ::octopusRC::previous_stage ${stage}
+	::octopus::append_cascading_variables
 }
 # END
 ################################################################################
@@ -1035,8 +1042,8 @@ proc ::octopusRC::elaborate args {
 
 	::octopusRC::check_set_common_vars
 
-	set var_array(10,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Design for which elaboration will take place" ]
-	set var_array(20,_REPORTS_PATH)		[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
+	::octopus::add_option --name "--design" --variable-name "DESIGN" --default "$DESIGN" --help-text "Top-Level design."
+	::octopus::add_option --name "--reports-path" --variable-name "_REPORTS_PATH" --default "$_REPORTS_PATH" --help-text "Directory storage for the reports."
 	extract_check_options_data
 	::octopus::abort_on error --return --display-help
 
@@ -1046,6 +1053,7 @@ proc ::octopusRC::elaborate args {
 	timestat Elaboration
 
 	::octopusRC::write --stage elb --no-netlist --no-lec 
+	::octopus::append_cascading_variables
 }
 # END
 ################################################################################
@@ -1063,9 +1071,9 @@ proc ::octopusRC::read_cpf args {
 		::octopus::display_message none "Reads the CPF file and does standard checks"
 	}
 
-	set var_array(10,cpf)		[list "--cpf" "<none>" "string" "1" "1" "" "CPF file" ]
-	set var_array(20,DESIGN)	[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
-	set var_array(30,_REPORTS_PATH)	[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
+	::octopus::add_option --name "--cpf" --help-text "CPF file"
+	::octopus::add_option --name "--design" --variable-name "DESIGN" --default "$DESIGN" --help-text "Top-Level design."
+	::octopus::add_option --name "--reports-path" --variable-name "_REPORTS_PATH" --default "$_REPORTS_PATH" --help-text "Directory storage for the reports."
 
 	extract_check_options_data
 
@@ -1086,6 +1094,7 @@ proc ::octopusRC::read_cpf args {
 		check_cpf -detail 	> ${_REPORTS_PATH}/${DESIGN}_check_cpf_${date}.rpt
 		check_design -all 	> ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.rpt
 	}
+	::octopus::append_cascading_variables
 }
 # END
 ################################################################################
@@ -1103,10 +1112,10 @@ proc ::octopusRC::synthesize args {
 		::octopus::display_message none "Synthesize the design and writes out useful files: netlist, lec do, "
 	}
 
-	set var_array(10,type)		[list "--type" "<none>" "string" "1" "1" "to_generic to_mapped to_mapped_incremental" "Specify to synthesis type" ]
-	set var_array(20,netlist-path)	[list "--netlist-path" "${_NETLIST_PATH}" "string" "1" "1" "" "Path were the netlist is written to." ]
-	set var_array(30,DESIGN)	[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
-	set var_array(40,_REPORTS_PATH)	[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
+	::octopus::add_option --name "--type" --valid-values "to_generic to_mapped to_mapped_incremental" --help-text "Specify to synthesis type"
+	::octopus::add_option --name "--netlist-path" --default "${_NETLIST_PATH}" --help-text "Path were the netlist is written to."
+	::octopus::add_option --name "--design" --variable-name "DESIGN" --default "$DESIGN" --help-text "Top-Level design."
+	::octopus::add_option --name "--reports-path" --variable-name "_REPORTS_PATH" --default "$_REPORTS_PATH" --help-text "Directory storage for the reports."
 	extract_check_options_data
 
 	::octopus::abort_on error --return --display-help
@@ -1145,6 +1154,7 @@ proc ::octopusRC::synthesize args {
 			::octopusRC::write --stage inc_scn --netlist-path ${netlist-path}
 		}
 	}
+	::octopus::append_cascading_variables
 }
 # END
 ################################################################################
@@ -1158,17 +1168,17 @@ proc ::octopusRC::constraints_from_tcbs args {
 	::octopusRC::check_set_common_vars
 
 	set  help_head {
-		::octopus::display_message none "Extracts the TCB values in a specific mode and writes out constraints"
+		::octopus::display_message none "Extracts the TCB values from test-data file(s) in a specified test mode and writes out SDC constraints"
 	}
 
-	set var_array(10,tcb-td-file)		[list "--tcb-td-file" "<none>" "string" "1" "infinity" "" "TCB test data file(s)" ]
-	set var_array(20,mode)			[list "--mode" "<none>" "string" "1" "1" "" "TCB mode for which constant values are extracted" ]
-	set var_array(30,exclude-ports)		[list "--exclude-ports" "" "string" "1" "infinity" "" "Skip the specified TCB port(s) completely." ]
-	set var_array(35,ports)			[list "--ports" "" "string" "1" "infinity" "" "Only this ports are considered. For the rest a false path constraint is added." ]
-	set var_array(37,no-false-paths)	[list "--no-false-paths" "false" "boolean" "" "" "" "No false paths are generated for the unconstrained TCB signals" ]
-	set var_array(40,constraint-file)	[list "--constraint-file" "<none>" "string" "1" "1" "" "The name of the file where the constraints are written into" ]
-	set var_array(50,append)		[list "--append" "false" "boolean" "" "" "" "Appends into <constraint-file> instead of truncating it" ]
-	set var_array(60,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
+	::octopus::add_option --name "--tcb-td-file" --max "infinity" --help-text "TCB test data file(s)"
+	::octopus::add_option --name "--mode" --help-text "TCB mode from test data file for which constant values are extracted"
+	::octopus::add_option --name "--exclude-ports" --default "" --max "infinity" --help-text  "Skip the specified TCB port(s) completely. No false paths/No constraints Not recommended)"
+	::octopus::add_option --name "--ports" --default "" --max "infinity" --help-text "Only the specified ports are considered for set_case_analysis. For the remaining ports a false path constraint is added. If --ports is not specified, all TCB signals will be considered for set_case_analysis."
+	::octopus::add_option --name "--no-false-paths" --default "false" --type "boolean" --help-text "No false paths are generated for the unconstrained TCB signals. (Not recommended)"
+	::octopus::add_option --name "--constraint-file" --help-text "The name of the file where the constraints are written into"
+	::octopus::add_option --name "--append" --default "false" --type "boolean" --help-text "Appends into <constraint-file> instead of truncating it"
+	::octopus::add_option --name "--design" --variable-name "DESIGN" --default "$DESIGN" --help-text "Top-Level design."
 
 	set  help_tail {
 		::octopus::display_message none "Note:"
@@ -1184,7 +1194,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 		"[get_attribute octopusRC_design_maturity_level]" != "alpha" && \
 		"$ports" == "" && \
 		"$mode" != "application" } { 
-		display_message error "For [get_attribute octopusRC_design_maturity_level] maturity level the --ports option is compulsory. It is too risky to do synthesis with set_case_analysis on all TCB ports!"
+		display_message error "For [get_attribute octopusRC_design_maturity_level] maturity level the --ports option is compulsory. It is too risky to do synthesis with set_case_analysis on all TCB ports!. The test engineers tend to change the polarity of test signals even after tape-out."
 	}
 
 	if { "${append}" == "false" } {
@@ -1322,9 +1332,9 @@ proc ::octopusRC::read_hdl args {
 		::octopus::display_message none "currently only rc and utel file list are supported"
 	}
 
-	set var_array(10,file)		[list "--file" "<none>" "string" "1" "infinity" "" "File(s) containing the list with all RTL to be read " ]
-	set var_array(20,type)		[list "--type" "<none>" "string" "1" "1" "text utel rc" "Type of file to read in" ]
-	set var_array(30,skip-files)	[list "--skip-files" "<none>" "string" "1" "infinity" "" "Skip the file(s). E.g. interfaces/behaviour/etc. Should be exactly the same as specified in 'file'" ]
+	::octopus::add_option --name "--file" --max "infinity" --help-text "File(s) containing the list with all RTL to be read"
+	::octopus::add_option --name "--type" --valid-values "text utel rc" --help-text "Type of file to read in"
+	::octopus::add_option --name "--skip-files" --default "" --max "infinity" --help-text "Skip the file(s). E.g. interfaces/behaviour/etc. Should be exactly the same as specified in 'file'"
 	extract_check_options_data
 
 	::octopus::abort_on error --return --display-help
@@ -1364,7 +1374,7 @@ proc ::octopusRC::delete_unloaded_undriven args {
 	set  help_head {
 		::octopus::display_message none "Deletes the unloaded and undriven. Depending on the design maturity this command is activated or not"
 	}
-	set var_array(60,DESIGN)		[list "--design" "$DESIGN" "string" "1" "1" "" "Top-Level design." ]
+	::octopus::add_option --name "--design" --variable-name "DESIGN" --default "$DESIGN" --help-text "Top-Level design."
 	extract_check_options_data
 
 
@@ -1413,8 +1423,8 @@ proc ::octopusRC::clean_reports args {
 
 	::octopusRC::check_set_common_vars
 
-	set var_array(20,no-save)	[list "--no-save" "false" "boolean" "" "" "" "Do not save the old reports" ]
-	set var_array(30,_REPORTS_PATH)	[list "--reports-path" "$_REPORTS_PATH" "string" "1" "1" "" "Location of the reports." ]
+	::octopus::add_option --name "--no-save" --default "false" --type "boolean"  --help-text "Do not preserve the old reports"
+	::octopus::add_option --name "--reports-path" --variable-name "_REPORTS_PATH" --default "$_REPORTS_PATH" --help-text "Directory storage for the reports."
 	extract_check_options_data
 
 	if { "${no-save}" == "false" } {
@@ -1424,6 +1434,7 @@ proc ::octopusRC::clean_reports args {
 		catch {file copy -force rc.cmd ${_REPORTS_PATH}_previous_run/}
 	}
 	file mkdir ${_REPORTS_PATH}
+	::octopus::append_cascading_variables
 }
 # END check_set_common_vars
 ################################################################################
@@ -1436,11 +1447,11 @@ proc ::octopusRC::output_driver args {
 	global env
 
 	set  help_head {
-		::octopus::display_message none "Retruns the list of drivers of the ports specified."
+		::octopus::display_message none "Returns the list of drivers of the ports specified."
 	}
 
-	set var_array(10,modules)	[list "--modules" "<none>" "string" "1" "infinity" "" "List of module(s) in the design." ]
-	set var_array(20,pins)		[list "--pins" "<none>" "string" "1" "1" "" "The output port(s). Will be used to find the driver." ]
+	::octopus::add_option --name "--modules" --max "infinity" --help-text "List of module(s) in the design."
+	::octopus::add_option --name "--pins" --help-text "The output port(s). Will be used to find the driver."
 	extract_check_options_data
 
 	::octopus::abort_on error --return --display-help
@@ -1651,5 +1662,6 @@ proc ::octopusRC::report_power_over_area args {
 	if { "$csv" != "stdout" } { close $fd }
 	#return  $ipw
 }
+#
 # END 
 ################################################################################
