@@ -301,7 +301,8 @@ proc ::octopus::add_option args {
 	set var_array(40,min)		[list "--min" "1" "number" "1" "1" "" "The minimum number of arguments. This number should be >= 0"]
 	set var_array(50,max)		[list "--max" "1" "string" "1" "1" "" "The maximum number of arguments. Besides numbers, the keyword infinity can be specified."]
 	set var_array(60,valid-values)	[list "--valid-values" "" "string" "1" "infinity" "" "Allowed values for option"]
-	set var_array(70,help-text)	[list "--help-text" "No help available. Urge the developer to provide useful information" "string" "1" "1" "" "The help message explaining the option"]
+	set var_array(70,variable-name)	[list "--variable-name" "<standard>" "string" "1" "infinity" "" "Allowed values for option"]
+	set var_array(80,help-text)	[list "--help-text" "No help available. Urge the developer to provide useful information" "string" "1" "1" "" "The help message explaining the option"]
 
 	::octopus::extract_check_options_data sensitive
 
@@ -339,7 +340,10 @@ proc ::octopus::add_option args {
 
 	::octopus::abort_on error --return
 
-	set va_internal($order,[string trim $name "-"]) [list "$name" "$default" "$type" "$min" "$max" "${valid-values}" "${help-text}"]
+	if { ${variable-name} == "<standard>" } {
+		set variable-name [string trim $name "-"]
+	}
+	set va_internal($order,${variable-name}) [list "$name" "$default" "$type" "$min" "$max" "${valid-values}" "${help-text}"]
 
 	::octopus::display_message debug "<1000> set va_internal($order,[string trim $name \"-\"]) [list \"$name\" \"$default\" \"$type\" \"$min\" \"$max\" \"${valid-values}\" \"$help-text\"]"
 	::octopus::append_cascading_variables
