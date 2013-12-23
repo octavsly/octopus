@@ -68,7 +68,7 @@ proc ::octopusRC::set_design_maturity_level args {
 		::octopus::display_message none "Set the RC parameters based on the design maturity level"
 	}
 
-	set var_array(10,maturity-level)	[list "--maturity-level" "diamond" "string" "1" "1" "pyrite bronze silver gold diamond" "Specify the maturity level of the design."]
+	set var_array(10,maturity-level)	[list "--maturity-level" "final" "string" "1" "1" "pre-alpha alpha beta release-candidate final" "Specify the maturity level of the design."]
 	set var_array(20,rc-attributes-file)	[list "--rc-attributes-file" "rc_attributes.txt" "string" "1" "infinity" "" "Specify the file from which settings will be extracted."]
 
 	extract_check_options_data ; #description of var_array variable is given in this procedures
@@ -87,7 +87,7 @@ proc ::octopusRC::set_design_maturity_level args {
 		-obj_type root \
 		-data_type string \
 		-default_value ${maturity-level} \
-		-help_string "Define the maturity level of the design. Can be pyrite, bronze, silver, gold or diamond."
+		-help_string "Define the maturity level of the design. Can be pre-alpha, alpha, beta, release-candidate or final."
 
 	# Parse setting.tcl file and set the attributes
 	foreach caf ${rc-attributes-file} {
@@ -100,7 +100,7 @@ proc ::octopusRC::set_design_maturity_level args {
 				continue
 			}
 			if { [ regexp {[\s]*([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+(.*)} $line match \
-				rc_attribute value(pyrite) value(bronze) value(silver) value(gold) value(diamond) comment ] } {
+				rc_attribute value(pre-alpha) value(alpha) value(beta) value(release-candidate) value(final) comment ] } {
 				if { "$value(${maturity-level})" != "-" } {
 					::octopus::display_message debug "<2> set_attribute $rc_attribute $value(${maturity-level})"
 					set_attribute $rc_attribute $value(${maturity-level})
@@ -115,11 +115,11 @@ proc ::octopusRC::set_design_maturity_level args {
 		close $fileID
 	}
 
-	set synthesis_effort(pyrite)	medium
-	set synthesis_effort(bronze)	high
-	set synthesis_effort(silver)	high
-	set synthesis_effort(gold)	high
-	set synthesis_effort(diamond)	high
+	set synthesis_effort(pre-alpha)	medium
+	set synthesis_effort(alpha)	high
+	set synthesis_effort(beta)	high
+	set synthesis_effort(release-candidate)	high
+	set synthesis_effort(final)	high
 
 }
 # END
@@ -1113,8 +1113,8 @@ proc ::octopusRC::synthesize args {
 
 	# Specify the effort required for Generic Synthesis. It is recommended to
 	# specify medium for Generic and non incremental synthesis for the first run
-	if { 	"[get_attribute octopusRC_design_maturity_level]" == "pyrite" || \
-		"[get_attribute octopusRC_design_maturity_level]" == "bronze"} {
+	if { 	"[get_attribute octopusRC_design_maturity_level]" == "pre-alpha" || \
+		"[get_attribute octopusRC_design_maturity_level]" == "alpha"} {
 		set effort_generic 	medium
 		set effort_mapped 	medium
 		set effort_incremental	medium
@@ -1172,7 +1172,7 @@ proc ::octopusRC::constraints_from_tcbs args {
 
 	set  help_tail {
 		::octopus::display_message none "Note:"
-		::octopus::display_message none "--ports option is compulsory for design maturity higher than bronze, if the design is not in application mode."
+		::octopus::display_message none "--ports option is compulsory for design maturity higher than alpha, if the design is not in application mode."
 		::octopus::display_message none "        The reason is that you might hide valid timing paths"
 	}
 
@@ -1180,8 +1180,8 @@ proc ::octopusRC::constraints_from_tcbs args {
 
 	::octopus::abort_on error --return --display-help
 
-	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pyrite" && \
-		"[get_attribute octopusRC_design_maturity_level]" != "bronze" && \
+	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pre-alpha" && \
+		"[get_attribute octopusRC_design_maturity_level]" != "alpha" && \
 		"$ports" == "" && \
 		"$mode" != "application" } { 
 		display_message error "For [get_attribute octopusRC_design_maturity_level] maturity level the --ports option is compulsory. It is too risky to do synthesis with set_case_analysis on all TCB ports!"
@@ -1368,8 +1368,8 @@ proc ::octopusRC::delete_unloaded_undriven args {
 	extract_check_options_data
 
 
-	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pyrite" && \
-		"[get_attribute octopusRC_design_maturity_level]" != "bronze"} {
+	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pre-alpha" && \
+		"[get_attribute octopusRC_design_maturity_level]" != "alpha"} {
 		::delete_unloaded_undriven -all -force_bit_blast ${DESIGN}
 	} else {
 		display_message info "Skiping delete_unloaded_undriven due to the maturity of the design: [get_attribute octopusRC_design_maturity_level]"
