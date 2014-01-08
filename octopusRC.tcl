@@ -1653,10 +1653,10 @@ proc ::octopusRC::report_power_over_area args {
 		::octopus::display_message none "Returns a list with power, area and power/area numbers of the selected instances."
 	}
 
-	set var_array(10,root) 			[list "--root" "/" "string" "1" "infinity" "" "The directories where the instances are searched" ]
-	set var_array(20,max-depth)		[list "--max-depth" "infinity" "string" "1" "1" "" "Max depth of the search" ]
-	set var_array(21,min-depth)		[list "--min-depth" "0" "number" "1" "1" "" "Min depth of the search" ]
-	set var_array(90,csv)			[list "--csv" "stdout" "string" "1" "1" "" "The name of comma separated file. stdout will mean 'on-screen'" ]
+	::octopus::add_option --name "--root" --default "/" --max "infinity" --help-text "The directories where the instances are searched"
+	::octopus::add_option --name "--max-depth" --default "infinity" --help-text "Max depth of the search"
+	::octopus::add_option --name "--min-depth" --default "0" --type "number" --help-text "Min depth of the search"
+	::octopus::add_option --name "--csv" --default "stdout" --help-text "The name of comma separated file. stdout will mean 'on-screen'"
 
 	set  help_tail {
 		::octopus::display_message info "More information:"
