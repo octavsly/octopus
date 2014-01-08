@@ -1629,10 +1629,10 @@ proc ::octopus::find_fall_edge_objects args {
 # BEGIN 
 proc ::octopus::design_crawler args {
 
-	upvar TCBs $diehardus::TCBs
-	upvar TPRs $diehardus::TPRs
-	upvar lefs $diehardus::lefs
-	upvar ctls $diehardus::ctls
+	upvar TCBs diehardus::TCBs
+	upvar TPRs diehardus::TPRs
+	upvar lefs diehardus::lefs
+	upvar ctls diehardus::ctls
 
 	set  help_head {
 		::octopus::display_message none "Help the user filling the design specific information"
