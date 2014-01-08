@@ -847,8 +847,8 @@ proc ::octopusRC::report_cg_tree args {
 	
 	if {[llength [find . -design *]] > 1} {
 		display_message error "There are multiple designs loaded."
-		display_messag " : [find / -design *]"
-		display_messag " : 'cd' to target design"
+		display_message " : [find / -design *]"
+		display_message " : 'cd' to target design"
 	}
 
 
