@@ -42,6 +42,7 @@ namespace eval ::octopusRC {
 			define_dft_test_signals \
 			\
 			find_fall_edge_objects \
+			design_crawler \
 			\
 			generate_list_of_clock_inverters_for_dft_shell \
 
@@ -1050,11 +1051,11 @@ proc ::octopusRC::elaborate args {
 	::octopus::abort_on error --return --display-help
 
 	::elaborate ${DESIGN}
-
-	puts "Runtime & Memory after 'read_hdl'"
-	timestat Elaboration
+	
+	::octopus::design_crawler --tcb --tpr
 
 	::octopusRC::write --stage elb --no-netlist --no-lec 
+
 	::octopus::append_cascading_variables
 }
 # END
@@ -1619,6 +1620,43 @@ proc ::octopus::find_fall_edge_objects args {
 		set sg_fall_edge ""
 	}
 	return [lappend sg_fall_edge $ff_fall_edge_no_dft_part_of_segment]
+}
+# END
+################################################################################
+
+
+################################################################################
+# BEGIN 
+proc ::octopus::design_crawler args {
+
+	upvar TCBs $diehardus::TCBs
+	upvar TPRs $diehardus::TPRs
+	upvar lefs $diehardus::lefs
+	upvar ctls $diehardus::ctls
+
+	set  help_head {
+		::octopus::display_message none "Help the user filling the design specific information"
+	}
+
+	:octopus::add_option --name "--tcb" --type "boolean" --default "false" --help-text "Search for TCB's in the design and sets the TCBs(module) variable"
+	:octopus::add_option --name "--tpr" --type "boolean" --default "false" --help-text "Search for TPR's in the design and sets the TCBs(module) variable"
+	:octopus::add_option --name "--lef" --type "boolean" --default "false" --help-text "Search for lef files"
+	:octopus::add_option --name "--ctl" --type "boolean" --default "false" --help-text "Search for ctl files"
+	:octopus::add_option --name "--scan-inputs" --default "si*" --help-text "Search for scan inputs, based on the name provided by the user."
+
+	if { "$tcb" == "true" && ! ([info exist TCBs]  && $TCBs != "")} {set TCBs [find /designs -subdesign *tcb*]}
+	if { "$tpr" == "true" && ! ([info exist TPRs]  && $TPRs != "")} {set TPRs [find /designs -subdesign *_tpr*]}
+	if { "$lef" == "true" && ! ([info exist lefs]  && $lefs != "") } {display_message warning "--lef option not implemented"}
+	if { "$ctl" == "true" && ! ([info exist ctls]  && $ctls != "") } {display_message warning "--ctl option not implemented"}
+
+	display_message debug "<2> Found TCB's: $TCBs"
+	display_message debug "<2> Found TPR's: $TPRs"
+
+	foreach crt_var "TCBs TPRs" {
+		if {"[set $crt_var]" == ""} {set $crt_var "diehardus_dummy_module"}
+	}
+
+	::octopus::append_cascading_variables
 }
 # END
 ################################################################################
