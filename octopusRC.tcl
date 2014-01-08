@@ -65,7 +65,7 @@ namespace eval ::octopusRC {
 proc ::octopusRC::set_design_maturity_level args {
 
 	set  help_head {
-		::octopus::display_message none "Set the RC parameters based on the design maturity level"
+		::octopus::display_message none "Set the RC attributes based on the design maturity level"
 	}
 
 	::octopus::add_option --name "--maturity-level" --default "final" --valid-values "pre-alpha alpha beta release-candidate final" --help-text "Specify the maturity level of the design."
@@ -1109,7 +1109,7 @@ proc ::octopusRC::synthesize args {
 	::octopusRC::check_set_common_vars
 
 	set  help_head {
-		::octopus::display_message none "Synthesize the design and writes out useful files: netlist, lec do, "
+		::octopus::display_message none "Synthesize the design and writes out useful files: netlist, lec do, etc."
 	}
 
 	::octopus::add_option --name "--type" --valid-values "to_generic to_mapped to_mapped_incremental" --help-text "Specify to synthesis type"
