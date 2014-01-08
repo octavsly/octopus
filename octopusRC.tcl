@@ -1112,48 +1112,80 @@ proc ::octopusRC::synthesize args {
 		::octopus::display_message none "Synthesize the design and writes out useful files: netlist, lec do, etc."
 	}
 
-	::octopus::add_option --name "--type" --valid-values "to_generic to_mapped to_mapped_incremental" --help-text "Specify to synthesis type"
+	set  help_tail {
+		::octopus::display_message none ""
+	}
+
+	::octopus::add_option --name "-to_generic" --type "boolean" --default "false" -help-text "-to_generic synthesize option from RC"
+	::octopus::add_option --name "-to_mapped" --type "boolean" --default "false" -help-text "-to_mapped synthesize option from RC"
+	::octopus::add_option --name "-incremental" --type "boolean" --default "false" -help-text "-incremental synthesize option from RC"
+	::octopus::add_option --name "-no_incremental" --type "boolean" --default "true" -help-text "-incremental synthesize option from RC"
+	::octopus::add_option --name "-effort" --default "automatic" -valid-values "automatic low medium high" --help-text "Synthesize effort, passed to the RC synthesize option."
+
+	::octopus::add_option --name "--type" --default "obsolete" --valid-values "obsolete to_generic to_mapped to_mapped_incremental" --help-text "OBSOLETE option: Specify to synthesis type."
 	::octopus::add_option --name "--netlist-path" --default "${_NETLIST_PATH}" --help-text "Path were the netlist is written to."
 	::octopus::add_option --name "--design" --variable-name "DESIGN" --default "$DESIGN" --help-text "Top-Level design."
 	::octopus::add_option --name "--reports-path" --variable-name "_REPORTS_PATH" --default "$_REPORTS_PATH" --help-text "Directory storage for the reports."
+
 	extract_check_options_data
 
 	::octopus::abort_on error --return --display-help
 
-	# Specify the effort required for Generic Synthesis. It is recommended to
-	# specify medium for Generic and non incremental synthesis for the first run
-	if { 	"[get_attribute octopusRC_design_maturity_level]" == "pre-alpha" || \
-		"[get_attribute octopusRC_design_maturity_level]" == "alpha"} {
-		set effort_generic 	medium
-		set effort_mapped 	medium
-		set effort_incremental	medium
-	} else {
-		set effort_generic 	high
-		set effort_mapped 	high
-		set effort_incremental	high
+	if { "$type" != "obsolete" } {
+		display_message error "--type option is obsolete. Do not use it anymore. Just use native RC options instead."
 	}
 
-	switch -- $type {
-		to_generic {
-			::synthesize -to_generic -eff $effort_generic
-			puts "Runtime & Memory after synthesize to generic"
-			timestat GENERIC
-			::octopusRC::write --stage gen --netlist-path ${netlist-path}
-		}
-		to_mapped {
-			::synthesize -to_mapped -eff $effort_mapped -no_incr -auto_identify_shift_register -shift_register_max_length 50
-			puts "Runtime & Memory after synthesize to mapped"
-			timestat MAPPED
-			::octopusRC::write --stage mapped --netlist-path ${netlist-path}
-		}
-		to_mapped_incremental {
-			::synthesize -to_mapped -eff $effort_incremental -incr
-			report summary
-			puts "Runtime & Memory after incremental synthesis"
-			timestat INCREMENTAL
-			::octopusRC::write --stage inc_scn --netlist-path ${netlist-path}
-		}
+	# exclusive options
+	if {	"$to_generic" == "false" & \
+		"$to_mapped" == "false" } {
+		display_message error "At least one option of -to_generic or -to_mapped needs to be specified."
 	}
+	if {	"$to_generic" == "true" & \
+		"$to_mapped" == "true" } {
+		display_message error "Only one option of -to_generic or -to_mapped needs to be specified."
+	}
+	if {	"$-incremental" == "false" & \
+		"$-no_incremental" == "false" } {
+		display_message error "At least one option of --incremental or --no_incremental needs to be specified."
+	}
+	if {	"$-incremental" == "true" & \
+		"$-no_incremental" == "true" } {
+		display_message error "Only one option of --incremental or --no_incremental needs to be specified."
+	}
+
+
+	if {"$to_generic" == "true"} {set type "-to_generic"}
+	if {"$to_mapped" == "true"} {set type "-to_mapped"}
+	if {"$incremental" == "true"} {set type_incr "-incremental"}
+	if {"$no_incremental" == "true"} {set type_incr "-no_incremental"}
+
+	if {"$to_generic" == "true"} {
+		set stage gen
+	} elseif {"$to_mapped" == "true" & "$no_incremental" == "true"} {
+		set stage mapped
+	} elseif {"$to_mapped" == "true" & "$incremental" == "true"} {
+		set stage inc_scn
+	} else {
+		display_message dev_error "Unhandled case."
+	}
+
+	::octopus::abort_on error --suspend --display-help
+
+	# Specify the effort required for Generic Synthesis. It is recommended to
+	# specify medium for Generic and non incremental synthesis for the first run
+	if { "$effort" != "automatic" } {
+		# do nothing effort already set.
+	} elseif { 	"[get_attribute octopusRC_design_maturity_level]" == "pre-alpha" || \
+			"[get_attribute octopusRC_design_maturity_level]" == "alpha"} {
+		set effort medium
+	} else {
+		set effort high
+	}
+
+	::synthesize $type -effort $effort $type_incr
+
+	::octopusRC::write --stage $stage --netlist-path ${netlist-path}
+
 	::octopus::append_cascading_variables
 }
 # END
