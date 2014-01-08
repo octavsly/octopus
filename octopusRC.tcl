@@ -41,6 +41,8 @@ namespace eval ::octopusRC {
 			define_dft_test_mode \
 			define_dft_test_signals \
 			\
+			find_fall_edge_objects \
+			\
 			generate_list_of_clock_inverters_for_dft_shell \
 
 	variable authors "Octavian Petre"
@@ -1589,6 +1591,34 @@ proc filter_valid_objects {direction objects} {
 		return $objects
 	}
 
+}
+# END
+################################################################################
+
+
+################################################################################
+# BEGIN return a list with all FF's and scan segements clocked on falling edge
+proc ::octopus::find_fall_edge_objects args {
+	set  help_head {
+		::octopus::display_message none "Find all FF's and scan segements clocked on falling edge of the clock"
+	}
+
+	set ff_fall_edge_no_dft_part_of_segment [filter -invert dft_part_of_segment "*" [filter dft_test_clock_edge "fall" [filter flop "true" [find / -inst *]] ] ]
+	set ff_fall_edge____dft_part_of_segment [filter         dft_part_of_segment "*" [filter dft_test_clock_edge "fall" [filter flop "true" [find / -inst *]] ] ]
+	foreach jjj $ff_fall_edge____dft_part_of_segment {
+		foreach iii [find / -scan_segment *] {
+			if { [string match "* $jjj *" " [get_attribute elements $iii] "] } {
+				lappend sg_fall_edge $iii
+				break
+			}
+		}
+	}
+	if { [info exists sg_fall_edge] } {
+		set sg_fall_edge [lsort -unique $sg_fall_edge]
+	} else {
+		set sg_fall_edge ""
+	}
+	return [lappend sg_fall_edge $ff_fall_edge_no_dft_part_of_segment]
 }
 # END
 ################################################################################
