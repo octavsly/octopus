@@ -614,7 +614,7 @@ proc ::octopusRC::read_dft_abstract_model args {
 			# There is an option "set disable_power_ground_pin_support 0", but this makes RC < 10.10.300 crash
 			set library_instantiations [filter libcell "[lindex [find -libcell $crt_module] 0]" [find / -inst * ] ]
 			set unresolved_instantiations [filter subdesign "/designs/*/subdesigns/$crt_module" [filter unresolved true [find /designs -inst *] ] ]
-			if { "$instances" == "" } {
+			if { "$instance" == "" } {
 				set instances [concat $library_instantiations $unresolved_instantiations ]
 				display_message debug "<2> Found instances: $instances"
 			} else {
@@ -645,7 +645,7 @@ proc ::octopusRC::read_dft_abstract_model args {
 					set_attribute boundary_opto false  $full_path_crt_module
 				}
 				set iii 0
-				if { "$instances" == "" } {
+				if { "$instance" == "" } {
 					set instances [get_attribute instances $full_path_crt_module]
 					display_message debug "<2> Found instances: $instances"
 				} else {
