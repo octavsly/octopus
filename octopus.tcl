@@ -805,8 +805,8 @@ proc ::octopus::parse_file_set args {
 	::octopus::abort_on error --return
 
 	set file_set_total ""; set file_set "";
-	switch -- $type {
-		utel {
+	switch -regexp -- $type {
+		^utel$|^rc$ {
 			foreach crt_file ${file} {
 				# This file should defines a file_set variable
 				if { [catch {source $crt_file} error_msg ] } {
@@ -814,17 +814,16 @@ proc ::octopus::parse_file_set args {
 				}
 				set file_set_total [concat $file_set_total $file_set]
 			}
-			::octopus::abort_on error --return
+			if { "$file_set_total" == "" && $type ==  "utel" } {
+				display_message error "Sourced files were empty!!!"
+			}
 		}
-		diehard {
+		^diehard$ {
 			::octopus::display_message error "Not implemented for time being"
-			::octopus::abort_on error --return
 		}
 	}
 
-	if { "$file_set_total" == "" } {
-		display_message error "Sourced files were empty!!!"
-	}
+
 	::octopus::abort_on error --return
 
 	::octopus::append_cascading_variables

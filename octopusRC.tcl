@@ -1248,7 +1248,7 @@ proc ::octopusRC::read_hdl args {
 
 	::octopus::abort_on error --return --display-help
 
-	set file_set_total [::octopus::parse_file_set --type utel --file $file]
+	set file_set_total [::octopus::parse_file_set --type $type --file $file]
 
 	foreach x $file_set_total {
 		foreach { f t l o } $x {
