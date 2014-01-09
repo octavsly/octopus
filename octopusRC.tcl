@@ -1163,10 +1163,21 @@ proc ::octopusRC::constraints_from_tcbs args {
 				display_message error "Could not find a cell in the test data file $crt_file"
 				continue
 			}
+			set crt_subdes [find /des* -subdes $cell ]
+			if { "$crt_subdes" == "" } {
+				::octopus::display_message error "$cell does not exist in the design. Why do you still have a td file?" 
+				continue
+			}
+			set instance_path [get_attribute instances $crt_subdes]
+			display_message debug "<20> Instance path found: $instance_path of cell $cell"
+			if { [llength $instance_path] >1 } {
+				::octopus::display_message error "More than one TCB instantiation for $cell module has been found. Don't know what to td :-("
+				continue
+			}
 			display_message debug "<5> Found TCB cell $cell in test data file $crt_file"
 			display_message debug "<15> TCB ports and values of $cell in mode $mode: $all_ports"
 			foreach aux $ports {
-				if { [lsearch -exact ${all_ports_names} $aux ] == -1 } { 
+				if { [lsearch -exact ${all_ports_names} $aux ] == -1 } {
 					display_message warning "$aux port not present in the TCB $cell picked from $crt_file"
 				}
 			}
@@ -1181,30 +1192,24 @@ proc ::octopusRC::constraints_from_tcbs args {
 				set crt_port 	[lindex $cpv 0]
 				set crt_value 	[lindex $cpv 1]
 				if { [lsearch -exact ${exclude-ports} $crt_port ] == -1 } {
-						set instance_path [get_attribute instances [find /des* -subdes $cell ]]
-						if { [llength $instance_path] <=1 } {
-							set full_path_fanin [vname [fanin -max_pin_depth 1 ${instance_path}/${crt_port}]]
-							if { $full_path_fanin ==  1 } {
-								::octopus::display_message error "Could not find ${instance_path}/${crt_port} in $DESIGN"
-							} else {
-								set gp_full_path_fanin "\[get_pins -nocase -regexp ${full_path_fanin}\]"
-								if { [lsearch -exact ${ports}  $crt_port] != -1 || "$ports" == "" } {
-									puts $fileIDsdc "#Derived from: ${crt_port} :: $crt_value"
-									puts $fileIDsdc "set_case_analysis $crt_value ${gp_full_path_fanin}"
-								} else {
-									# port not in the list specified by the user. Are we allowed to have false-paths?
-									puts $fileIDsdc "    # Derived from: ${crt_port} :: $crt_value"
-									if { "${no-false-paths}" == "false" } {
-										puts $fileIDsdc "    set_false_path -through ${gp_full_path_fanin}"
-									} else {
-										puts $fileIDsdc "    # False path disabled by user => SKIPPING port: $crt_port"
-									}
-								}
-							}
+					set full_path_fanin [vname [fanin -max_pin_depth 1 ${instance_path}/${crt_port}]]
+					if { $full_path_fanin ==  1 } {
+						::octopus::display_message error "Could not find ${instance_path}/${crt_port} in $DESIGN"
+					} else {
+						set gp_full_path_fanin "\[get_pins -nocase -regexp ${full_path_fanin}\]"
+						if { [lsearch -exact ${ports}  $crt_port] != -1 || "$ports" == "" } {
+							puts $fileIDsdc "#Derived from: ${crt_port} :: $crt_value"
+							puts $fileIDsdc "set_case_analysis $crt_value ${gp_full_path_fanin}"
 						} else {
-							::octopus::display_message error "More than one TCB instantiation for $cell module has been found. Don't know what to td :-("
+							# port not in the list specified by the user. Are we allowed to have false-paths?
+							puts $fileIDsdc "    # Derived from: ${crt_port} :: $crt_value"
+							if { "${no-false-paths}" == "false" } {
+								puts $fileIDsdc "    set_false_path -through ${gp_full_path_fanin}"
+							} else {
+								puts $fileIDsdc "    # False path disabled by user => SKIPPING port: $crt_port"
+							}
 						}
-
+					}
 				} else {
 					puts $fileIDsdc "# SKIPPING user requested port: $crt_port"
 				}
