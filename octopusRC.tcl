@@ -988,10 +988,10 @@ proc ::octopusRC::synthesize args {
 		::octopus::display_message none ""
 	}
 
-	::octopus::add_option --name "-to_generic" --type "boolean" --default "false" -help-text "-to_generic synthesize option from RC"
-	::octopus::add_option --name "-to_mapped" --type "boolean" --default "false" -help-text "-to_mapped synthesize option from RC"
-	::octopus::add_option --name "-incremental" --type "boolean" --default "false" -help-text "-incremental synthesize option from RC"
-	::octopus::add_option --name "-no_incremental" --type "boolean" --default "true" -help-text "-incremental synthesize option from RC"
+	::octopus::add_option --name "-to_generic" --type "boolean" --default "false" --help-text "-to_generic synthesize option from RC"
+	::octopus::add_option --name "-to_mapped" --type "boolean" --default "false" --help-text "-to_mapped synthesize option from RC"
+	::octopus::add_option --name "-incremental" --type "boolean" --default "false" --help-text "-incremental synthesize option from RC"
+	::octopus::add_option --name "-no_incremental" --type "boolean" --default "true" --help-text "-incremental synthesize option from RC"
 	::octopus::add_option --name "-effort" --default "automatic" -valid-values "automatic low medium high" --help-text "Synthesize effort, passed to the RC synthesize option."
 
 	::octopus::add_option --name "--type" --default "obsolete" --valid-values "obsolete to_generic to_mapped to_mapped_incremental" --help-text "OBSOLETE option: Specify to synthesis type."
