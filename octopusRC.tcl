@@ -1503,20 +1503,22 @@ proc ::octopus::find_fall_edge_objects args {
 # BEGIN 
 proc ::octopus::design_crawler args {
 
-	upvar TCBs diehardus::TCBs
-	upvar TPRs diehardus::TPRs
-	upvar lefs diehardus::lefs
-	upvar ctls diehardus::ctls
+	upvar diehardus::TCBs(module) TCBs 
+	upvar diehardus::TPRs(module) TPRs 
+	upvar diehardus::lefs lefs 
+#	upvar diehardus::ctls ctls 
 
 	set  help_head {
 		::octopus::display_message none "Help the user filling the design specific information"
 	}
 
-	:octopus::add_option --name "--tcb" --type "boolean" --default "false" --help-text "Search for TCB's in the design and sets the TCBs(module) variable"
-	:octopus::add_option --name "--tpr" --type "boolean" --default "false" --help-text "Search for TPR's in the design and sets the TCBs(module) variable"
-	:octopus::add_option --name "--lef" --type "boolean" --default "false" --help-text "Search for lef files"
-	:octopus::add_option --name "--ctl" --type "boolean" --default "false" --help-text "Search for ctl files"
-	:octopus::add_option --name "--scan-inputs" --default "si*" --help-text "Search for scan inputs, based on the name provided by the user."
+	::octopus::add_option --name "--tcb" --type "boolean" --default "false" --help-text "Search for TCB's in the design and sets the TCBs(module) variable"
+	::octopus::add_option --name "--tpr" --type "boolean" --default "false" --help-text "Search for TPR's in the design and sets the TCBs(module) variable"
+	::octopus::add_option --name "--lef" --type "boolean" --default "false" --help-text "Search for lef files"
+	::octopus::add_option --name "--ctl" --type "boolean" --default "false" --help-text "Search for ctl files"
+	::octopus::add_option --name "--scan-inputs" --default "si*" --help-text "Search for scan inputs, based on the name provided by the user."
+	extract_check_options_data
+	::octopus::abort_on error --return --display-help
 
 	if { "$tcb" == "true" && ! ([info exist TCBs]  && $TCBs != "")} {set TCBs [find /designs -subdesign *tcb*]}
 	if { "$tpr" == "true" && ! ([info exist TPRs]  && $TPRs != "")} {set TPRs [find /designs -subdesign *_tpr*]}
