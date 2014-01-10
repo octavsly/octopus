@@ -96,11 +96,11 @@ proc ::octopusRC::set_design_maturity_level args {
 		foreach line [split [read $fileID] "\n"] {
 			::octopus::display_message debug "<20> Processing line: $line"
 			# Process line
-			if { [ regexp {^[\s]*#} $line match] } {
+			if { [ regexp {^[\s]*#} $line match] || [ regexp {^[\s]*$} $line match] } {
 				# comments so just continue
 				continue
 			}
-			if { [ regexp {[\s]*([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+(.*)} $line match \
+			if { [ regexp {[\s]*([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)[\s]+([^\s]+)(.*)} $line match \
 				rc_attribute value(pre-alpha) value(alpha) value(beta) value(release-candidate) value(final) comment ] } {
 				if { "$value(${maturity-level})" != "-" } {
 					::octopus::display_message debug "<2> set_attribute $rc_attribute $value(${maturity-level})"
@@ -1044,15 +1044,11 @@ proc ::octopusRC::read_cpf args {
 	foreach current_design_mode [ find / -vname -mode * ] {
 		report timing -lint -verbose -mode [file tail $current_design_mode] >  ${_REPORTS_PATH}/${DESIGN}_report_timing_lint_${current_design_mode}.rpt
 	}
-	set check_cpf_opt ""
-	if { [get_attribute clp_treat_errors_as_warnings /] == "true" } {
-		set check_cpf_opt "-continue_on_error"
-	}
 	if { "$::octopusRC::run_speed" != "fast"} {
 		set date [exec date +%s]
-		check_library 				> ${_REPORTS_PATH}/${DESIGN}_check_library_${date}.rpt
-		eval check_cpf -detail $check_cpf_opt	> ${_REPORTS_PATH}/${DESIGN}_check_cpf_${date}.rpt
-		check_design -all 			> ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.rpt
+		check_library 		> ${_REPORTS_PATH}/${DESIGN}_check_library_${date}.rpt
+		eval check_cpf -detail	> ${_REPORTS_PATH}/${DESIGN}_check_cpf_${date}.rpt
+		check_design -all 	> ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.rpt
 	}
 	::octopus::append_cascading_variables
 }
