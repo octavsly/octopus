@@ -548,18 +548,12 @@ proc ::octopusRC::define_dft_test_clocks args {
 # This function already exists in cadence, thus is not exported.
 proc ::octopusRC::read_dft_abstract_model args {
 
-	set  help_head {
-		::octopus::display_message warning "OBSOLETE PROCEDURE [::octopus::calling_proc -1]:"
-		::octopus::display_message warning "[::octopus::calling_proc -1] will dissapear in the future since RC 12.1 is natively supporting this feature."
-	}
-	eval $help_head
-
 	# not migrated to add_option since this procedure might disappear
-	set var_array(10,ctl)				[list "--ctl" "<none>" "string" "1" "infinity" "" "Specify the CTL file(s) to be read in. If --module option is used then only one file can be read in" ]
-	set var_array(20,assume-connected-shift-enable)	[list "--assume-connected-shift-enable" "false" "boolean" "" "" "" "Specify this option if the shift enable is already connected for all CTL files read in." ]
-	set var_array(30,module)			[list "--module" "" "string" "1" "1" "" "Specify the module/library cell associated with the ctl file. If missing 'Environment' CTL keyword will be used instead." ]
-	set var_array(40,instance)			[list "--instance" "" "string" "1" "1" "" "Specify the instance associated with the ctl file. If missing 'Environment' CTL keyword will be used instead." ]
-	set var_array(50,boundary-opto)			[list "--boundary-opto" "false" "boolean" "" "" "" "By default, boundary optimization is switched off for modules with CTL associated. By specifying this option you switch boundary optimization on" ]
+	::octopus::add_option --name "--ctl" --max "infinity" --help-text "Specify the CTL file(s) to be read in. If --module option is used then only one file can be read in"
+	::octopus::add_option --name "-assume_connected_shift_enable" --type "boolean" --default "false" --help-text "Specify this option if the shift enable is already connected for all CTL files read in."
+	::octopus::add_option --name "--module" --default "" --help-text "Specify the module/library cell associated with the ctl file. If missing 'Environment' CTL keyword will be used instead."
+	::octopus::add_option --name "--instance" --default "" --help-text "Specify the instance associated with the ctl file. If missing 'Environment' CTL keyword will be used instead."
+	::octopus::add_option --name "--boundary-opto" --type "boolean" --default "false" --help-text "By default, boundary optimization is switched off for modules with CTL associated. By specifying this option you switch boundary optimization on"
 
 	set  help_tail {
 		::octopus::display_message none "Note:"
@@ -577,7 +571,7 @@ proc ::octopusRC::read_dft_abstract_model args {
 
 	abort_on error --return --display-help
 
-	if { "${assume-connected-shift-enable}" == "true"} {
+	if { "${assume_connected_shift_enable}" == "true"} {
 		set assume_connected_shift_enable "-assume_connected_shift_enable"
 	} else {
 		set assume_connected_shift_enable ""
@@ -606,65 +600,23 @@ proc ::octopusRC::read_dft_abstract_model args {
 		}
 
 		::octopus::display_message debug "<1> BEGIN Defining DfT abstract segments for all instances of module '${crt_module}'"
-		if { [llength [lindex [find / -libcell ${crt_module}] 0]] !=0 } {
-			# This is a library cell with scan-chains inside. e.g. AMOS does that to increase coverage
-			#
-			# Also search for unresolved. This should not be done but beacuse the powers are connected in RTL and because
-			# the pg_pin attribute is in the library, RC cannot link the RTL instantiation with the library cell.
-			# There is an option "set disable_power_ground_pin_support 0", but this makes RC < 10.10.300 crash
-			set library_instantiations [filter libcell "[lindex [find -libcell $crt_module] 0]" [find / -inst * ] ]
-			set unresolved_instantiations [filter subdesign "/designs/*/subdesigns/$crt_module" [filter unresolved true [find /designs -inst *] ] ]
-			if { "$instance" == "" } {
-				set instances [concat $library_instantiations $unresolved_instantiations ]
-				display_message debug "<2> Found instances: $instances"
-			} else {
-				set instances $instance
-				display_message debug "<2> Command line specified instances: $instances"
-			}
-			foreach crt_instance $instances {
-				eval ::read_dft_abstract_model \
-					-segment_prefix "[file tail ${crt_module}]=[file tail ${crt_instance}]++" \
-					-instance $crt_instance \
-					$assume_connected_shift_enable \
-					-ctl $crt_ctl_file
-			}
+		eval ::read_dft_abstract_model \
+			-segment_prefix "[file tail ${crt_module}]++" \
+			$assume_connected_shift_enable \
+			-ctl $crt_ctl_file
 
-			if { [llength $unresolved_instantiations] != 0  } {
-				::octopus::display_message warning "I am defining a chain on an unresolved instance: $unresolved_instantiations."
-				::octopus::display_message warning "		 Check why it's unresolved."
-				::octopus::display_message warning "		 Furthermore, this might create problems with the connect_scan_chains command since the scan-in/scan-out ports are preserved true and cannot be connected to the scan chain"
-			}
-		} else {
-			# This is a cell
+
+		if { [llength [lindex [find / -libcell ${crt_module}] 0]] == 0 } {
+			# Not a library cell 
 			set full_path_crt_module [find -subdesign ${crt_module}]
 			if { [llength $full_path_crt_module] == 0 } {
-				::octopus::display_message error "There is no instantiation of module ${crt_module}. Was it optimized away?"
+				::octopus::display_message error "There is no instantiation of module ${crt_module}. Was ${crt_module} optimized away?"
 			} else {
 				if { "${boundary-opto}" == "false" } {
 					::octopus::display_message debug "<2> Switching off boundary optimization for module $full_path_crt_module"
 					set_attribute boundary_opto false  $full_path_crt_module
 				}
-				set iii 0
-				if { "$instance" == "" } {
-					set instances [get_attribute instances $full_path_crt_module]
-					display_message debug "<2> Found instances: $instances"
-				} else {
-					set instances $instance
-					display_message debug "<2> Command line specified instances: $instances"
-				}
-
-				foreach crt_instance $instances {
-					eval ::read_dft_abstract_model \
-						-segment_prefix "[file tail ${crt_module}]=[file tail ${crt_instance}]++${iii}" \
-						-instance $crt_instance \
-						$assume_connected_shift_enable \
-						-ctl $crt_ctl_file
-					incr iii
-				}
 			}
-		}
-		if { [ llength $instances ] == 0 } {
-				::octopus::display_message error "There is no instantiation of module ${crt_module}. Was this optimized away?"
 		}
 		::octopus::display_message debug "<1> END Defining DfT abstract segments for all instances of module '${crt_module}'"
 	}
