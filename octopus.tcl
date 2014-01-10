@@ -803,7 +803,7 @@ proc ::octopus::check_file args {
 proc ::octopus::parse_file_set args {
 
 	add_option --name "--file" --max infinity --help-text "The source files that need to be parsed"
-	add_option --name "--type" --valid-values "utel diehard" --help-text "Type of file"
+	add_option --name "--type" --valid-values "utel diehard rc" --help-text "Type of file"
 	::octopus::extract_check_options_data
 
 	::octopus::abort_on error --return
