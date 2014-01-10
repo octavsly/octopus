@@ -111,6 +111,8 @@ proc ::octopusRC::set_design_maturity_level args {
 				if { ${rc_attribute} == "hdl_track_filename_row_col" } {
 					::octopus::display_message warning "hdl_track_filename_row_col attribute is known to create problems like slow-down and crashes"
 				}
+			} else {
+				::octopus::display_message error "Malformed ${rc-attributes-file} file. Line to be blamed: $line"
 			}
 		}
 		close $fileID
@@ -1042,12 +1044,15 @@ proc ::octopusRC::read_cpf args {
 	foreach current_design_mode [ find / -vname -mode * ] {
 		report timing -lint -verbose -mode [file tail $current_design_mode] >  ${_REPORTS_PATH}/${DESIGN}_report_timing_lint_${current_design_mode}.rpt
 	}
-
+	set check_cpf_opt ""
+	if { [get_attribute clp_treat_errors_as_warnings /] == "true" } {
+		set check_cpf_opt "-continue_on_error"
+	}
 	if { "$::octopusRC::run_speed" != "fast"} {
 		set date [exec date +%s]
-		check_library 		> ${_REPORTS_PATH}/${DESIGN}_check_library_${date}.rpt
-		check_cpf -detail 	> ${_REPORTS_PATH}/${DESIGN}_check_cpf_${date}.rpt
-		check_design -all 	> ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.rpt
+		check_library 				> ${_REPORTS_PATH}/${DESIGN}_check_library_${date}.rpt
+		eval check_cpf -detail $check_cpf_opt	> ${_REPORTS_PATH}/${DESIGN}_check_cpf_${date}.rpt
+		check_design -all 			> ${_REPORTS_PATH}/${DESIGN}_check_design_${date}.rpt
 	}
 	::octopus::append_cascading_variables
 }
