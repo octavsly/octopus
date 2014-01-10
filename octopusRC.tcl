@@ -1130,8 +1130,8 @@ proc ::octopusRC::synthesize args {
 	# specify medium for Generic and non incremental synthesis for the first run
 	if { "$effort" != "automatic" } {
 		# do nothing effort already set.
-	} elseif { 	"[get_attribute octopusRC_design_maturity_level]" == "pre-alpha" || \
-			"[get_attribute octopusRC_design_maturity_level]" == "alpha"} {
+	} elseif { 	"[get_attribute octopusRC_design_maturity_level /]" == "pre-alpha" || \
+			"[get_attribute octopusRC_design_maturity_level /]" == "alpha"} {
 		set effort medium
 	} else {
 		set effort high
@@ -1177,11 +1177,11 @@ proc ::octopusRC::constraints_from_tcbs args {
 
 	::octopus::abort_on error --return --display-help
 
-	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pre-alpha" && \
-		"[get_attribute octopusRC_design_maturity_level]" != "alpha" && \
+	if { 	"[get_attribute octopusRC_design_maturity_level /]" != "pre-alpha" && \
+		"[get_attribute octopusRC_design_maturity_level /]" != "alpha" && \
 		"$ports" == "" && \
 		"$mode" != "application" } { 
-		display_message error "For [get_attribute octopusRC_design_maturity_level] maturity level the --ports option is compulsory. It is too risky to do synthesis with set_case_analysis on all TCB ports!. The test engineers tend to change the polarity of test signals even after tape-out."
+		display_message error "For [get_attribute octopusRC_design_maturity_level /] maturity level the --ports option is compulsory. It is too risky to do synthesis with set_case_analysis on all TCB ports!. The test engineers tend to change the polarity of test signals even after tape-out."
 	}
 
 	if { "${append}" == "false" } {
@@ -1370,11 +1370,11 @@ proc ::octopusRC::delete_unloaded_undriven args {
 	extract_check_options_data
 
 
-	if { 	"[get_attribute octopusRC_design_maturity_level]" != "pre-alpha" && \
-		"[get_attribute octopusRC_design_maturity_level]" != "alpha"} {
+	if { 	"[get_attribute octopusRC_design_maturity_level /]" != "pre-alpha" && \
+		"[get_attribute octopusRC_design_maturity_level /]" != "alpha"} {
 		::delete_unloaded_undriven -all -force_bit_blast ${DESIGN}
 	} else {
-		display_message info "Skiping delete_unloaded_undriven due to the maturity of the design: [get_attribute octopusRC_design_maturity_level]"
+		display_message info "Skiping delete_unloaded_undriven due to the maturity of the design: [get_attribute octopusRC_design_maturity_level /]"
 	}
 
 	::octopus::append_cascading_variables
