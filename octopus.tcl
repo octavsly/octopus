@@ -312,14 +312,14 @@ proc ::octopus::add_option args {
 		set default "<none>"
 	}
 
-	if { $name == "--redirect" } {
+	if { "$name" == "--redirect" } {
 		display_message error "--redirect option is reserved for >. Please pick another option"
 	}
 
-	if { $name == ">" } {# redirect active
+	if { "$name" == ">" } {# redirect active
 		set name "--redirect"
 	}
-				
+
 	if { [string range $name 0 0] != "-" } {
 		display_message error "Option specified with --name does not start with symbol -"
 	}
@@ -345,7 +345,7 @@ proc ::octopus::add_option args {
 	}
 	set va_internal($order,${variable-name}) [list "$name" "$default" "$type" "$min" "$max" "${valid-values}" "${help-text}"]
 
-	::octopus::display_message debug "<1000> set va_internal($order,[string trim $name \"-\"]) [list \"$name\" \"$default\" \"$type\" \"$min\" \"$max\" \"${valid-values}\" \"$help-text\"]"
+	::octopus::display_message debug "<1000> set va_internal($order,${variable-name}) [list \"$name\" \"$default\" \"$type\" \"$min\" \"$max\" \"${valid-values}\" \"$help-text\"]"
 	::octopus::append_cascading_variables
 	return 0
 }
@@ -418,26 +418,12 @@ proc ::octopus::extract_check_options_data { {parsing standard} } {
 	foreach iii [array names var_array] {
 		set var_array_trunk([variable_names $iii]) $var_array($iii)
 	}
-
 	# The values of the options need to be exported one level up
-	# In case the var referes to files to be opened then upvar the handle of the newly opened file
 	foreach option_var [array names var_array_trunk] {
 		if { "$option_var" != "execution_trace(debug-level)" } {
-			if { "$option_var" == "redirect" } {
-				if { "[set $option_var]" != "stdout" } {
-					if { [catch {set ${option_var}_fileId [open [set ${option_var}] w 0640]} ] } {
-						display_message error "File [set $option_var] could not be opened"
-					} else {
-						upvar ${option_var}_fileId ${option_var}_fileId
-					}
-				} else {
-					set $option_var stdout
-				}
-			} 
 			upvar $option_var $option_var
 		}
 	}
-
 	# Construct the list of possible arguments, do the first checks on what the user specified as parse-able options
 	set allow_orphan_options false
 	set accumulate_param_orphaned 0
@@ -597,6 +583,24 @@ proc ::octopus::extract_check_options_data { {parsing standard} } {
 		}
 	}
 	# END extracting the value
+	################################################################################
+
+
+	################################################################################
+	# BEGIN export file variable
+	# In case the var referes to files to be opened then upvar the handle of the newly opened file
+	foreach option_var [array names var_array_trunk] {
+		if { "$option_var" == "redirect" } {
+			if { "[set $option_var]" != "stdout" } {
+				if { [catch {set ${option_var}_fileId [open [set ${option_var}] w 0640]} ] } {
+					display_message error "File [set $option_var] could not be opened"
+				} else {
+					upvar ${option_var}_fileId ${option_var}_fileId
+				}
+			}
+		}
+	}
+	# END export file variable
 	################################################################################
 
 
