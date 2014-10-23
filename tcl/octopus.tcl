@@ -290,6 +290,8 @@ proc ::octopus::true_if_number { tocheck } {
 # Description:
 # 	This procedure will be replacing the definition of var_array in all the
 #	procedures, in order to make the option addition easier
+# 	Mind that execution_trace(debug_level) is not yet defined when hitting this procedure.
+#	Thus it is not possible to use it here
 proc ::octopus::add_option args {
 
 	upvar var_array va_internal
@@ -324,7 +326,7 @@ proc ::octopus::add_option args {
 		set name "--redirect"
 	}
 
-	if { [string range $name 0 0] != "-" } {
+	if { [string range $name 0 0] != "-" && "$name" != "<orphaned>"} {
 		display_message error "Option specified with --name does not start with symbol -"
 	}
 
@@ -349,7 +351,6 @@ proc ::octopus::add_option args {
 	}
 	set va_internal($order,${variable-name}) [list "$name" "$default" "$type" "$min" "$max" "${valid-values}" "${help-text}"]
 
-	::octopus::display_message debug "<1000> set va_internal($order,${variable-name}) [list \"$name\" \"$default\" \"$type\" \"$min\" \"$max\" \"${valid-values}\" \"$help-text\"]"
 	::octopus::append_cascading_variables
 	return 0
 }
@@ -675,7 +676,7 @@ proc ::octopus::display_help {} {
 
 	upvar var_array var_array
 
-	catch { uplevel {eval $help_head} }
+	uplevel {if {[info exists help_head]} {eval $help_head}}
 	puts ""
 	puts "Usage:"
 	puts -nonewline "  [file tail [::octopus::calling_proc]] "
@@ -754,7 +755,7 @@ proc ::octopus::display_help {} {
 	incr parse_twice
 	}
 	puts ""
-	catch { uplevel {eval $help_tail} } 
+	uplevel {if {[info exists help_tail]} {eval $help_tail} }
 }
 # END
 ################################################################################

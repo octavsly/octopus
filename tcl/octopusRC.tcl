@@ -1732,34 +1732,91 @@ proc ::octopusRC::report_power_over_area args {
 proc ::octopusRC::set_attribute args {
 
 	set  help_head {
-		::octopus::display_message none "RC set_attribute procedure extended. Currently support for the following attributes ONLY"
-		::octopus::display_message none "    boundary_opto: on instances"
-
+		::octopus::display_message info "RC set_attribute procedure extended."
+		::octopus::display_message none "    Allows to set attributes on instances instead of modules"
+		::octopus::display_message none "    by seraching the modules of the instantiations. Currently support for the following attributes ONLY"
+		::octopus::display_message none "        boundary_opto: on instances"
 	}
 
 	::octopus::add_option --name "--type" --default "subdesign" --valid-values "subdesign instance" --help-text "The type of design object to put the attribute on"
-	::octopus::add_option --name "<orphaned>" --help-text "Attribute and syntax according RC" --variable-name "rc_cmd"
+	::octopus::add_option --name "<orphaned>" --min 3 --max infinity --help-text "Attribute and syntax according RC" --variable-name "rc_args"
 
 	extract_check_options_data
 
-	if { "$type" == "subdesign" } {
-		eval "::$rc_cmd"	; # It should be a standard RC command
-	} else {
-		# Instances. Thus first find the modules
-		set rc_cmd_head [lindex $rc_cmd 0 2]
-		set inst_nms [ find / -instance [lrange $rc_cmd 3 end]]
-		set mdl_nms ""
-		foreach inst inst_nms {
-			lappend mdl_nms [get_attribute subdesign $inst]
+	::octopus::abort_on error --return --display-help
+
+	set rc_attribute 	[lindex $rc_args 0]
+	set rc_attribute_val	[lindex $rc_args 1]
+	switch -- $rc_attribute {
+		boundary_opto	{
+			if { "$type" == "subdesign" } {
+				display_message debug "<2> Running set_attribute $rc_args"
+				eval "::set_attribute $rc_args"	; # It should be a standard RC command
+			} else {
+				set rc_args_head [lrange $rc_args 0 1] ; # Get the
+				set mdl_nms [::octopusRC::i2m2i --type instance [lrange $rc_args 2 end]] ;# Instances. Thus first find the modules
+
+				foreach crt_mdl $mdl_nms {
+					display_message debug "<2> Running set_attribute $rc_attribute $rc_attribute_val $crt_mdl"
+					eval ::set_attribute $rc_attribute $rc_attribute_val $crt_mdl
+				}
+			}
 		}
-		foreach crt_mdl [lsort -unique $mdl_nms] {
-			display_message debug "<2> Running $rc_cmd_head $crt_mdl"
-			eval $rc_cmd_head $crt_mdl
+		default		{
+				display_message error "Attribute $rc_attribute not supported"
 		}
-		
+	}
+
+	::octopus::append_cascading_variables
+}
+#
+# END
+################################################################################
+
+
+################################################################################
+# BEGIN set_attribute
+proc ::octopusRC::i2m2i args {
+
+	set  help_head {
+		::octopus::display_message none "Given a set of instances it returns the modules and the other way round"
+	}
+
+	::octopus::add_option --name "--type" --default "subdesign" --valid-values "subdesign instance" --help-text "The type of design object to search for"
+	::octopus::add_option --name "<orphaned>" --min 1 --max infinity --help-text "The objects to search for" --variable-name "im"
+
+	extract_check_options_data
+
+	::octopus::abort_on error --return --display-help
+
+	switch -- $type {
+		instance	{
+			# First find all instances especialy of wildcards have been specified
+			set inst_nms ""
+			foreach crt_inst $im {
+				set inst_nms "$inst_nms [find / -instance $crt_inst]" ; # Only one argument can be given to find.
+			}
+			# Find all modules
+			set mdl_nms ""
+			foreach inst $inst_nms {
+				lappend mdl_nms [get_attribute subdesign $inst]
+			}
+			return [lsort -unique $mdl_nms]
+			}
+		subdesign	{
+			set mdl_nms ""
+			foreach crt_mdl $im {
+				set mdl_nms "$mdl_nms [find / -subdesign $crt_mdl]"
+			}
+			set inst_nms ""
+			foreach crt_mdl $mdl_nms {
+				set inst_nms "$inst_nms [get_attribute instance $crt_mdl]"
+			}
+			return [lsort -unique $inst_nms]
+		}
 	}
 	::octopus::append_cascading_variables
 }
 #
-# END 
+# END
 ################################################################################
