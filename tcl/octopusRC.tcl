@@ -1725,3 +1725,41 @@ proc ::octopusRC::report_power_over_area args {
 #
 # END 
 ################################################################################
+
+
+################################################################################
+# BEGIN set_attribute 
+proc ::octopusRC::set_attribute args {
+
+	set  help_head {
+		::octopus::display_message none "RC set_attribute procedure extended. Currently support for the following attributes ONLY"
+		::octopus::display_message none "    boundary_opto: on instances"
+
+	}
+
+	::octopus::add_option --name "--type" --default "subdesign" --valid-values "subdesign instance" --help-text "The type of design object to put the attribute on"
+	::octopus::add_option --name "<orphaned>" --help-text "Attribute and syntax according RC" --variable-name "rc_cmd"
+
+	extract_check_options_data
+
+	if { "$type" == "subdesign" } {
+		eval "::$rc_cmd"	; # It should be a standard RC command
+	} else {
+		# Instances. Thus first find the modules
+		set rc_cmd_head [lindex $rc_cmd 0 2]
+		set inst_nms [ find / -instance [lrange $rc_cmd 3 end]]
+		set mdl_nms ""
+		foreach inst inst_nms {
+			lappend mdl_nms [get_attribute subdesign $inst]
+		}
+		foreach crt_mdl [lsort -unique $mdl_nms] {
+			display_message debug "<2> Running $rc_cmd_head $crt_mdl"
+			eval $rc_cmd_head $crt_mdl
+		}
+		
+	}
+	::octopus::append_cascading_variables
+}
+#
+# END 
+################################################################################
