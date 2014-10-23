@@ -295,7 +295,11 @@ proc ::octopus::add_option args {
 	upvar var_array va_internal
 	upvar order order
 
-	set var_array(10,name)		[list "--name" "<none>" "string" "1" "1" "" "The name of the option. It should start with -- or - , otherwise an error will be generated"]
+        set  help_head {
+		::octopus::display_message none "Procedure for parsing command line arguments"
+	}
+
+	set var_array(10,name)		[list "--name" "<none>" "string" "1" "1" "" "The name of the option. It should start with -- or - , otherwise an error will be generated. If <orphaned> is used then all arguments are accepted without an associated option"]
 	set var_array(20,default)	[list "--default" "<no default>" "string" "1" "1" "" "The default value of the option. If no default value is supplied, this option is mandatory when calling the procedure."]
 	set var_array(30,type)		[list "--type" "string" "string" "1" "1" "number string boolean" "What types of arguments we expect for the command line option."]
 	set var_array(40,min)		[list "--min" "1" "number" "1" "1" "" "The minimum number of arguments. This number should be >= 0"]
