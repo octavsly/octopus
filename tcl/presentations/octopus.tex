@@ -1,0 +1,523 @@
+\documentclass[handout]{beamer}
+%\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage{default}
+
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{pgfpages}
+\usepackage{epstopdf} % to have eps loaded
+\usepackage[normalem]{ulem} % to have strike-through
+\usepackage{alltt} % verbatim with commands inside
+\usepackage{hyperref}
+
+% \usepackage[latin1]{inputenc}
+\usetheme{Warsaw}
+
+% New commands
+\newcommand{\cfgopt}[1]{{\it-*#1 config option}}
+\newcommand{\signal}[1]{{\it#1}}
+\newcommand{\feedback}[1]{{\tiny (#1 feedback)}}
+\newcommand{\code}[1]{{\tiny #1)}}
+\newcommand{\regbit}[1]{({\bf#1})}
+\newcommand{\tclpackage}[1]{{\alert{#1}}}
+\newcommand{\octopus}{\includegraphics[height=2ex]{../logo/octobiwan.png}}
+
+\title[Octopus]{Octopus}
+\subtitle{TCL Packages for Your Daily Work}
+
+\author{Octavian Petre}
+\institute{}
+\date{April 17, 2013}
+\titlegraphic{\includegraphics[height=.5\textheight]{../logo/octobiwan.png}}
+
+\logo{\includegraphics[height=15px]{support_pictures/export/octobiwan_icon.jpg}}
+% to have page numbers
+% This is copied from /usr/share/texmf-site/tex/latex/beamer/base/themes/outer/beamerouterthemeinfolines.sty
+% which is used in Madrid theme
+\setbeamertemplate{footline}
+{%
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor(\insertshortinstitute)
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+    \usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em}
+    \insertframenumber{} / \inserttotalframenumber\hspace*{2ex} 
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+
+\begin{document}
+\setcounter{tocdepth}{1}
+
+\begin{frame}[plain]
+\titlepage 
+\tiny{Get the latest presentation from \href{https://github.com/octavsly/octopus}{\underline{Octopus Repository}}}
+\end{frame}
+
+\AtBeginSection[]
+{
+	  \begin{frame}<beamer>
+		    \frametitle{Outline}
+		    \tableofcontents[currentsection,currentsubsection]
+	  \end{frame}
+}
+
+
+\begin{frame}
+	\frametitle{Outline}
+	\tableofcontents[pausesections]
+\end{frame}
+
+\section{What is Octopus(\octopus)?}
+\begin{frame}{What is Octopus(\octopus)?}
+	\begin{itemize}[<+->]
+	\item Collection of TCL packages that should help the development of TCL scripts
+		\begin{itemize}
+		 \item A TCL package is just a collection of useful procedures.
+		\end{itemize}
+	\item Available \octopus packages 
+		\begin{itemize}
+		 \item \tclpackage{octopus} \\TCL package.
+		 \item \tclpackage{octopusRC} \\RTL Compiler package. Depending on \tclpackage{octopus}.
+		 \item \tclpackage{octopusDS} \\DesignSync package. Depending on \tclpackage{octopus}.
+		 \item \tclpackage{octopusNC} \\NCsim package. Depending on \tclpackage{octopus}.
+		\end{itemize}
+	\item Other packages will be developed as needed.
+	\end{itemize}
+\end{frame}
+
+\section{WHY?/HOW?}
+\subsection{WHY?}
+\begin{frame}{WHY?}
+	\begin{itemize}[<+->]
+	 \item I am unable to easily parse many nested procedures for which arguments are parsed by position. No clear API.\\
+	 Thus, \alert{code readability}.
+	 \item Inability to enhance procedures without breaking all calls, or use tricks such as: default values or {\bf args} variable. \\
+	 Thus, \alert{portability}.
+	 \item Lack of documentation of procedures (RC scripts, test benches, ncsim.... etc.)\\
+	 Thus, \alert{documentation}.
+	 \item Structural reuse as opposed to adhoc.\\
+	 Thus, \alert{traceability}.
+	 
+	\end{itemize}
+\end{frame}
+
+\subsection{HOW?}
+\begin{frame}[fragile]{HOW?}{1}
+	\begin{itemize}
+	\item \alert{code readability} \& \alert{portability} \\
+	\item<2->{Instead of positional arguments\\}
+	\end{itemize}
+	\begin{overprint}
+	\onslide<2|handout:0>
+		\begin{semiverbatim}
+		set\_attribute\_recursive dont\_touch true [find * ... ] up
+		\end{semiverbatim}
+	\onslide<3-|handout:1>
+		\begin{semiverbatim}
+		\sout{set_attribute_recursive dont_touch true [find * ... ] up}
+		\end{semiverbatim}
+	\end{overprint}
+	
+	\pause
+	\begin{itemize}
+	\item<3> {Use options for calling procedures/scripts:}
+	\end{itemize}
+	\begin{semiverbatim}
+	\uncover<3>{::octopusRC::set_attribute_recursive \textbackslash
+{    }--attribute dont_touch true \textbackslash
+{    }--objects [find * ... ] \textbackslash
+{    }--direction up}
+	\end{semiverbatim}
+\end{frame}
+
+\begin{frame}[fragile]{HOW?}{2}
+	\begin{itemize}
+	\item \alert{portability} \\
+	Easy to extend procedure without breaking previous calls\\
+	\begin{semiverbatim}
+	::octopusRC::set_attribute_recursive \\
+	    --attribute dont_touch true \\
+	    --objects [find * ... ] \\
+	    --direction up \\
+	    \alert{--ignore_clocks} # THIS IS A NEW OPTION!!!
+	\end{semiverbatim}
+	\end{itemize}
+\end{frame}
+\begin{frame}[fragile]{HOW?}{3}
+	\begin{itemize}
+	\item \alert{documentation}\\
+	Built in. Serves as comments as well.\\
+	\end{itemize}
+	{\tiny
+	\begin{semiverbatim}
+set var_array(10,attribute) ..."\alert{Specify the attribute to be applied. Format is: attribute <true|false>.}"]
+set var_array(30,objects)   ..."\alert{Specify the objects for which the attributes will beapplied. e.g. instaces/modules/pins/etc.}"]
+set var_array(40,direction) ..."\alert{Specify the direction of recursion. up: all parents will get the attribute, down: all children. both:}"]
+
+set help_tail \{
+        puts "\alert{More information:}" 
+        puts "\alert{    --objects:   While pins, or other objects, can be specified, it makes no sense, since recursion is not yet implemented}"
+\}
+	\end{semiverbatim}
+	}
+\end{frame}
+
+\section{Quick Start/Installation}
+\subsection{Quick Start}
+\begin{frame}[fragile]{Quick Start}
+	\begin{itemize}
+	\item Add OCTOPUS\_INSTALL\_PATH variable to the shell environment. For bash:
+	\end{itemize}
+	{\small
+	\begin{semiverbatim}
+\alert{export OCTOPUS_INSTALL_PATH=<directory location of octopus.tcl>}
+	\end{semiverbatim}
+	}
+	\begin{itemize}
+	\item Add to your TCL script:
+	\end{itemize}
+	{\small
+	\begin{semiverbatim}
+\alert{lappend auto_path \$env(OCTOPUS_INSTALL_PATH)}
+\alert{package require octopus   0.1}
+# using procedures without ::octopus:: prefix\footnote[1]{\tiny{Don't use it for OctopusRC. Conflicts with RC procedures.}}
+namespace import ::octopus::*
+	\end{semiverbatim}
+	}
+\end{frame}
+
+\subsection{Installation}
+\begin{frame}[fragile]{Installation}
+	\begin{itemize}
+	\item<1-> Latest version available via git repository \\
+	\begin{semiverbatim}
+	\alert{git clone https://github.com/octavsly/octopus.git}
+	\end{semiverbatim}
+	\item<2-> Subsequent updates 
+	\begin{semiverbatim}
+	\alert{git pull}
+	\end{semiverbatim}
+	\end{itemize}
+\end{frame}
+
+\section{Documentation}
+\begin{frame}[fragile]{Documentation}
+	\begin{itemize}
+	\item \href{https://github.com/octavsly/octopus/wiki}{Octopus Wiki Page} available \\
+		Wiki behind the development scripts.
+	\pause
+	\item Help available from every procedure using \alert{-{}-help} option.
+	\pause
+	\item Standalone utility to display help of all/any/many procedures:
+	\pause
+	\end{itemize}
+	{\small
+	\begin{semiverbatim}
+\alert{joe@moon> export OCTOPUS_INSTALL_PATH=<location of octopus.tcl>}
+\alert{joe@moon> ./info_procedures.tcl}
+	\end{semiverbatim}
+	}
+\end{frame}
+
+\section{Under the Hood}
+\subsection{Octopus}
+\begin{frame}[fragile]{Octopus}
+	\begin{itemize}
+	 \item Procedures/Scripts argument parsing.
+	 \item Messages handling.
+	 \item Flow Control.
+	 \item Colours, etc.
+	\end{itemize}
+
+	{\small
+	\begin{verbatim}
+           ::octopus::extract_check_options_data
+           ::octopus::display_message
+           ::octopus::summary_of_messages
+        
+           ::octopus::set_octopus_color
+           ::octopus::abort_on
+           ::octopus::parse_file_set
+           ::octopus::debug_variables
+	\end{verbatim}
+	}
+\end{frame}
+
+\subsection{::octopus::extract\_check\_options\_data}
+\begin{frame}[fragile]{::octopus::extract\_check\_options\_data}{1}
+	\alert{The Core Procedure}. \\Can parse procedures and/or script arguments.
+
+	{\tiny
+	\begin{semiverbatim}
+proc ::octopusRC::define_dft_test_signals \alert{args} \{
+    set help_head \{
+        ::octopus::display_message none "Extracts DfT constraints from SDC set_case_analysis statements"
+    \}
+    # Procedure options parsing
+    set \alert{var_array}(10,timing-modes)	[list "--timing-modes" "{<none>}" "string" "1" "infinity" "\$timing_modes" \textbackslash
+        "The timing mode(s) the set_case_analysis will be extracted from" ]
+      ...
+    \alert{extract_check_options_data}
+	\end{semiverbatim}
+	}
+\end{frame}
+
+\begin{frame}[fragile]{::octopus::extract\_check\_options\_data}{2}
+	{\tiny
+	\begin{semiverbatim}
+	set var_array(10,timing-modes)	[list "\alert<1>{--timing-modes}" "\alert<2>{<none>}" "\alert<3>{string}" "1" "infinity" "T1 T2" \
+		"The timing mode(s) the set_case_analysis will be extracted from" ]
+	\end{semiverbatim}
+	}
+	\begin{itemize}[<+->]
+	\item [{\tiny -{}-timing-modes}] Command line/Procedure \alert{option}. \\
+	$\left\langle orphaned \right\rangle$ can be used for arguments without command line option.
+	\item [$\left\langle none \right\rangle$] Keyword specifying there is no
+	default \alert{argument/value} for this option. Thus specifying this
+	-{}-timing-modes option is compulsory.
+	\item [string] Keyword specifying that a string is expected as a value
+	to -{}-timing-modes option.\\
+	{\small Other possible values are: \alert{number}, \alert{boolean} and two more.}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{::octopus::extract\_check\_options\_data}{3}
+	{\tiny
+	\begin{semiverbatim}
+	set var_array(10,\alert<5>{timing-modes})	[list "--timing-modes" "<none>" "string" "\alert<1>{1}" "\alert<2>{infinity}" "\alert<3>{T1 T2}" \textbackslash
+	
+    "\alert<4>{The timing mode(s) the set_case_analysis will be extracted from}" ]
+	\end{semiverbatim}
+	}
+	\begin{itemize}[<+->]
+	\item [1] Minimum number of arguments(values).
+	\item [infinity] Maximum number of arguments(values).
+	\item [T1 T2] Allowed values. Empty string means anything.
+	\item [{\small The timi...}] Help associated with the option and displayed when \\
+	-{}-help is called.
+	\item [{\tiny timing\_modes}] variable will contain all strings/arguments specified after -{}-timing-modes, \alert{timing\_modes} will have a minimum length of 1 and be one of T1 and/or T2.
+	\end{itemize}
+\end{frame}
+
+\subsection{Messages Handling}
+\begin{frame}[fragile]{::octopus::display\_message / ::octopus::summary\_of\_messages}
+	\begin{semiverbatim}
+	{\small
+::octopus::display_message \alert{none} \textbackslash 
+    "Extracts DfT constraints from SDC set_case_analysis statements"}
+	\end{semiverbatim}
+	\begin{itemize}
+	\item [none] is message type. \\
+	Other types include \alert{error}, \alert{warning}, \alert{workaround}, \alert{info}, \alert{fixme}, \alert{tip}, \alert{debug}.
+	\end{itemize}
+	\pause	
+	\begin{semiverbatim}
+		summary_of_messages infos errors
+	\end{semiverbatim}
+	\begin{itemize}
+	\item Displays a user selected list of recorded messages during the flow. Useful at the end of a run.
+	\end{itemize}
+\end{frame}
+
+\subsection{OctopusRC}
+\begin{frame}[fragile]{OctopusRC}{Novel procedures}
+	{\small
+	\begin{verbatim}
+           ::octopusRC::read_dft_abstract_model
+           ::octopusRC::define_dft_test_clocks
+           ::octopusRC::define_dft_test_signals
+           ::octopusRC::constraints_from_tcbs
+           
+           ::octopusRC::generate_list_of_clock_inverters_for_dft_shell
+           ::octopusRC::rec_grouping
+           ::octopusRC::report_power_over_area
+           \end{verbatim}
+	}
+\end{frame}
+\begin{frame}[fragile]{OctopusRC}{Potential Useful}
+	{\small
+	\begin{verbatim}      
+           ::octopusRC::report_attributes
+           ::octopusRC::read_hdl
+           ::octopusRC::output_driver
+           ::octopusRC::set_attribute_recursive
+           
+           ::octopusRC::fan_hierarchical
+           ::octopusRC::advanced_recursive_grouping
+                   
+           ::octopusRC::modules_under
+	\end{verbatim}
+	}
+\end{frame}
+\begin{frame}[fragile]{OctopusRC}{Put Some Structure}
+	{\small
+	\begin{verbatim}             
+           ::octopusRC::synthesize
+           ::octopusRC::read_cpf
+           ::octopusRC::write
+           ::octopusRC::elaborate
+           
+           ::octopusRC::set_design_maturity_level
+           ::octopusRC::report_timing
+	\end{verbatim}
+	}
+\end{frame}
+
+\subsection{::octopusRC::read\_dft\_abstract\_model}
+\begin{frame}[fragile,plain]{::octopusRC::read\_dft\_abstract\_model}
+\begin{columns}
+\begin{column}{1.1\textwidth}
+	\tiny
+	\begin{verbatim}
+WARNING:   OBSOLETE PROCEDURE ::octopusRC::read_dft_abstract_model:
+WARNING:   ::octopusRC::read_dft_abstract_model will dissapear in the future since RC 12.1 is natively supporting this feature.
+
+Usage:
+  ::octopusRC::read_dft_abstract_model  --ctl <string>...<string> [--assume-connected-shift-enable] --module <string> --instance <string> [--boundary-opto] [--no-colour] [--debug-level <#>] [--help]
+
+Options:
+  --ctl  <string>...<string>       : Specify the CTL file(s) to be read in. If --module option is used then only one file can be read in.
+  --assume-connected-shift-enable  : Specify this option if the shift enable is already connected for all CTL files read in. Default value is false.
+  --module  <string>               : Specify the module/library cell associated with the ctl file. If missing 'Environment' CTL keyword will be used instead.
+  --instance  <string>             : Specify the instance associated with the ctl file. If missing 'Environment' CTL keyword will be used instead.
+  --boundary-opto                  : By default, boundary optimization is switched off for modules with CTL associated. By specifying this option you switch boundary optimization on. Default value is false.
+
+General Options:
+  --no-colour                      : Turns off colourful output (not recommended). Default value is false.
+  --debug-level  <#>               : Displays more debug information during the run. Default value is the calling debug level. Default value is 0.
+  --help                           : This help message. Default value is false.
+
+Note:
+  --instance option supports only one instance. Thus, the user is strongly encouraged to use native RC commands
+  for defining chains on instances. 
+\end{verbatim}
+  
+\end{column}
+\end{columns}
+\end{frame}
+
+\subsection{::octopusRC::constraints\_from\_tcbs}
+\begin{frame}[fragile,plain]{::octopusRC::constraints\_from\_tcbs}
+\begin{columns}
+\begin{column}{1.1\textwidth}
+	\tiny
+	\begin{verbatim}
+           Extracts the TCB values in a specific mode and writes out constraints
+
+Usage:
+  ::octopusRC::constraints_from_tcbs  --tcb-td-file <string>...<string> --mode <string> --exclude-ports <string>...<string> \
+                                      --ports <string>...<string> [--no-false-paths] --constraint-file <string> \
+                                      [--append] --design <string> [--no-colour] [--debug-level <#>] [--help]
+
+Options:
+    --tcb-td-file  <string>...<string>   : TCB test data file(s).
+    --mode  <string>                     : TCB mode for which constant values are extracted.
+    --exclude-ports  <string>...<string> : Skip the specified TCB port(s) completely.
+    --ports  <string>...<string>         : Only this ports are considered. For the rest a false path constraint is added.
+    --no-false-paths                     : No false paths are generated for the unconstrained TCB signals. Default value is false.
+    --constraint-file  <string>          : The name of the file where the constraints are written into.
+    --append                             : Appends into <constraint-file> instead of truncating it. Default value is false.
+    --design  <string>                   : Top-Level design.
+
+General Options:
+    --no-colour                          : Turns off colourful output (not recommended). Default value is false.
+    --debug-level  <#>                   : Displays more debug information during the run. Default value is the calling debug level. Default value is 0.
+    --help                               : This help message. Default value is false.
+
+           Note:
+           --ports option is compulsory for design maturity higher than bronze, if the design is not in application mode.
+                   The reason is that you might hide valid timing paths
+	\end{verbatim}
+  
+\end{column}
+\end{columns}
+\end{frame}
+
+\subsection{::octopusRC::define\_dft\_test\_signals}
+\begin{frame}[fragile,plain]{::octopusRC::define\_dft\_test\_signals}
+\begin{columns}
+\begin{column}{1.1\textwidth}
+	\tiny
+	\begin{verbatim}
+Usage:
+  ::octopusRC::define_dft_test_signals  --timing-modes <string>...<string> [--skip-signals <string>...<string>] \
+                                        [--add-signals <string>...<string>] [--test-mode shift|capture] \
+                                        [--no-colour] [--debug-level <#>] [--help]
+
+Options:
+    --timing-modes  <string>...<string> : The timing mode(s) the set_case_analysis will be extracted from.
+    --skip-signals  <string>...<string> : Skip the signal specified in the constraints (not recommended). Default value is false.
+    --add-signals  <string>...<string>  : Add more signals then the one specified in the constraints. (not recommended). Default value is false.
+    --test-mode  shift|capture          : The DfT mode the timing mode is associated with. Default value is shift.
+
+General Options:
+    --no-colour                         : Turns off colourful output (not recommended). Default value is false.
+    --debug-level  <#>                  : Displays more debug information during the run. Default value is the calling debug level. Default value is 0.
+    --help                              : This help message. Default value is false.
+
+	\end{verbatim}
+  
+\end{column}
+\end{columns}
+\end{frame}
+
+\subsection{::octopusRC::define\_dft\_test\_clocks}
+\begin{frame}[fragile,plain]{::octopusRC::define\_dft\_test\_clocks}
+\begin{columns}
+\begin{column}{1.1\textwidth}
+	\tiny
+	\begin{verbatim}
+Usage:
+  ::octopusRC::define_dft_test_clocks  --timing-modes <string>...<string> [--skip-clocks <string>...<string>] [--add-clocks <string>...<string>] [--no-colour] [--debug-level <#>] [--help]
+
+Options:
+    --timing-modes  <string>...<string> : The timing mode(s) the clocks will be extracted from.
+    --skip-clocks  <string>...<string>  : Skip the clocks specified in the constraints. Default value is false.
+    --add-clocks  <string>...<string>   : Add more clocks then the one specified in the constraints. Default value is false.
+
+General Options:
+    --no-colour                         : Turns off colourful output (not recommended). Default value is false.
+    --debug-level  <#>                  : Displays more debug information during the run. Default value is the calling debug level. Default value is 0.
+    --help                              : This help message. Default value is false.
+	\end{verbatim}
+  
+\end{column}
+\end{columns}
+\end{frame}
+
+
+\section{Contact \& Contribute}
+\begin{frame}{Contact \& Contribute}
+	\begin{itemize}[<+->]
+	\item Octavian Petre
+	\item Use git \\
+	\alert{git clone https://github.com/octavsly/octopus.git}\\
+	Send me the path of your repository to pull your changes from
+	\end{itemize}
+\end{frame}
+
+\section{Usages}
+\begin{frame}{Usages}
+	Future presentation about:\\
+	\alert{DieHardUS - TCL Utilities and Scripts for your daily work}
+	\begin{itemize}
+	 \item temposync script using native temposync commands and several type of file lists
+	 \item nccoex compilation script using irun.
+	 \item tempoflow2TCL file list (alpha stage)
+	 \item rtlcompiler scripts (will be discontinued due to Cadence reference flow)
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Questions}
+\centerline{{\huge ?}}
+\end{frame}
+\end{document}
+           
