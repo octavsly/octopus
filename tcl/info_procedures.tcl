@@ -9,7 +9,6 @@ if { [info exists env(OCTOPUS_INSTALL_PATH) ] } {
         exit 1
 }
 
-lappend auto_path $env(OCTOPUS_INSTALL_PATH)
 package require octopus 0.1
 package require octopusNC 0.1
 package require octopusRC 0.1
