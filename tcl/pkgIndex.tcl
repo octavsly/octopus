@@ -8,8 +8,8 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded libterm 0.9.0 [list source [file join $dir libterm.tcl]]
-package ifneeded EMail 1.7 [list source [file join $dir email17.tcl]]
+package ifneeded libterm 0.9.0 [list source [file join $dir externals/libterm.tcl]]
+#package ifneeded EMail 1.7 [list source [file join $dir email17.tcl]]
 package ifneeded octopus 0.1 [list source [file join $dir octopus.tcl]]
 package ifneeded octopusRC 0.1 [list source [file join $dir octopusRC.tcl]]
 package ifneeded octopusNC 0.1 [list source [file join $dir octopusNC.tcl]]
