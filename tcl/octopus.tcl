@@ -415,9 +415,9 @@ proc ::octopus::extract_check_options_data { {parsing standard} } {
 		set dd 0
 	}
 	# Add the help/debug automatically
-	set var_array(z10,no-colour) 			[list "--no-colour" "false" "boolean" "" "" "" "Turns off colourful output (not recommended)." ]
-	set var_array(z20,execution_trace(debug-level)) [list "--debug-level" "$dd" "debug" "" "" "" "Displays more debug information during the run. Default value is the calling debug level" ]
-	set var_array(z30,help)				[list "--help" "false" "help" "" "" "" "This help message" ]
+	set var_array(z10,no-colour) 			[list "--no-colour" "false" "boolean" "" "" "" "Turns off colourful output after command line parsing (not recommended)." ]
+	set var_array(z30,execution_trace(debug-level)) [list "--debug-level" "$dd" "debug" "" "" "" "Displays more debug information during the run. Default value is the calling debug level" ]
+	set var_array(z40,help)				[list "--help" "false" "help" "" "" "" "This help message" ]
 
 	#var_array contains indexes like "<10,variable>", to aid the correct display of the help. Get rid of these.
 	foreach iii [array names var_array] {
@@ -433,6 +433,7 @@ proc ::octopus::extract_check_options_data { {parsing standard} } {
 	set allow_orphan_options false
 	set accumulate_param_orphaned 0
 	foreach option_var [array names var_array_trunk]  {
+		display_message debug "<99> Parsing $option_var"
 		set option_name 		[lindex $var_array_trunk($option_var) 0]
 		set option_var_type	 	[lindex $var_array_trunk($option_var) 2]
 		#				[lindex $var_array_trunk($option_var) 3] : minimum number of elements
@@ -495,6 +496,7 @@ proc ::octopus::extract_check_options_data { {parsing standard} } {
 	set option_name ""
 
 	foreach cur_option $passed_options {
+		display_message debug "<99> Current command line option: $cur_option"
 		# For each option passed to the procedure identify the parameters that should be respected
 		if { ! ($parsing == "sensitive" && $option_name == "--name") && ([regexp -- {-+[^\s]*} $cur_option ] || "$cur_option" == ">") } {
 			# This appears to be an option so search for it
@@ -525,12 +527,12 @@ proc ::octopus::extract_check_options_data { {parsing standard} } {
 			set option_var_max_nr_elm 	[lindex $var_array_trunk($option_var) 4]
 			set option_allowed_values 	[lindex $var_array_trunk($option_var) 5]
 
+			display_message debug "<99> Processing option type: '$option_var_type' "
+
 			if { "$option_var_type" == "help" } {
 				catch { uplevel ::octopus::display_help }
 				if { [catch { return -level 2 } ] } { return -code 2}
 			}
-
-			display_message debug "<99> Processing option type: '$option_var_type' "
 
 			# Do some direct processing for boolean types of options
 			if { "$option_var_type" == "boolean" || "$option_var_type" == "help" } {
