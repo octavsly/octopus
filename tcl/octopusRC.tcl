@@ -1557,7 +1557,7 @@ proc filter_valid_objects {direction objects} {
 
 ################################################################################
 # BEGIN return a list with all FF's and scan segements clocked on falling edge
-proc ::octopus::find_fall_edge_objects args {
+proc ::octopusRC::find_fall_edge_objects args {
 	set  help_head {
 		::octopus::display_message none "Find all FF's and scan segements clocked on falling edge of the clock"
 	}
@@ -1585,7 +1585,7 @@ proc ::octopus::find_fall_edge_objects args {
 
 ################################################################################
 # BEGIN 
-proc ::octopus::design_crawler args {
+proc ::octopusRC::design_crawler args {
 
 	upvar diehardus::TCBs(module) TCBs 
 	upvar diehardus::TPRs(module) TPRs 
