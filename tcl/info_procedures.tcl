@@ -14,9 +14,11 @@ package require octopusNC 0.1
 package require octopusRC 0.1
 package require octopusDS 0.1
 
-set var_array(10,package)		[list "--package" "octopus octopusNC octopusRC octopusDS" "string" "1" "infinity" "octopus octopusNC octopusRC octopusDS" "Package used for requesting information. More than one package can be specified."]
-set var_array(20,procedure)		[list "--procedure" "" "string" "1" "1" "" "The procedure for which name/help will be returned. Package name should be omitted"]
-set var_array(30,print)			[list "--print" "name" "string" "1" "1" "name help" "What to show. Name is the procedure(s) name while help is their help."]
+namespace import ::octopus::*
+
+add_option --name "--package" --type string --default "octopus octopusNC octopusRC octopusDS" --max infinity --valid-values "octopus octopusNC octopusRC octopusDS" --help-text "Package used for requesting information. More than one package can be specified."
+add_option --name "--procedure" --type string --default "" --help-text "The procedure for which name/help will be returned. Package name should be omitted"
+add_option --name "--print" --type string --default "name" --valid-values "name help" --help-text "What to show. Name is the procedure(s) name while help is their help."
 
 set help_head {
 	puts "[file tail $argv0 ]"
